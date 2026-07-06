@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fairlight 5.1 — Interactive Routing Map (Resolve 21)</title>
+<style>
+:root{--bg:#12151c;--panel:#1b202b;--panel2:#232a38;--line:#39424f;--txt:#e7ecf3;--dim:#8a95a5;--acc:#4a86c7;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+#app{display:flex;height:100vh;width:100vw;overflow:hidden}
+#stage{flex:1;position:relative;overflow:hidden;cursor:grab}
+#stage.grab{cursor:grabbing}
+svg{width:100%;height:100%;display:block;touch-action:none}
+#side{width:380px;flex:none;background:var(--panel);border-left:1px solid var(--line);
+  padding:18px 18px 40px;overflow-y:auto}
+h1{font-size:15px;margin:0 0 2px;letter-spacing:.2px}
+.subtitle{color:var(--dim);font-size:12px;margin-bottom:6px;line-height:1.5}
+.verchip{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:20px;
+  background:#1f3524;color:#8fd49a;border:1px solid #2e5237;margin-bottom:12px}
+.hint{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:11px 13px;font-size:12.5px;color:var(--dim);line-height:1.55}
+details.box{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:9px 12px;font-size:11.5px;margin-bottom:10px}
+details.box summary{cursor:pointer;font-weight:600;color:var(--txt)}
+details.box table{width:100%;border-collapse:collapse;margin-top:9px}
+details.box th,details.box td{text-align:left;padding:3px 4px;border-bottom:1px solid var(--line);color:var(--dim)}
+details.box th{color:var(--txt);font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+details.box td:first-child{color:var(--txt)}
+details.box p{color:var(--dim);line-height:1.55;margin:8px 0 2px}
+details.box ul,details.box ol{margin:8px 0 4px;padding-left:18px;color:var(--dim);line-height:1.55}
+details.box li{margin-bottom:5px}
+details.box b{color:var(--txt)}
+.sel-name{font-size:17px;font-weight:650;margin-bottom:2px}
+.sel-fmt{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;
+  background:var(--panel2);color:var(--txt);margin-bottom:10px;margin-right:6px}
+.sel-desc{font-size:12.5px;color:var(--dim);line-height:1.55;margin-bottom:12px}
+.howto{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:9px 12px;font-size:12px;margin-bottom:14px}
+.howto summary{cursor:pointer;font-weight:600;color:var(--txt);font-size:12px}
+.howto ol{margin:8px 0 2px;padding-left:18px;color:var(--dim);line-height:1.55}
+.howto li{margin-bottom:6px}
+.howto b{color:var(--txt)}
+.howto .why{color:var(--dim);line-height:1.55;margin:8px 0 2px;font-size:11.5px;
+  border-top:1px solid var(--line);padding-top:8px}
+abbr{cursor:help;text-decoration:underline dotted #5d6b7e;text-underline-offset:2px}
+.plain{border-left:3px solid var(--acc);background:var(--panel2);border-radius:6px;
+  padding:8px 11px;font-size:12px;color:var(--dim);line-height:1.55;margin-bottom:12px}
+.plain b{color:var(--txt)}
+.gl{margin:6px 0 2px}
+.gl dt{color:var(--txt);font-weight:600;margin-top:8px;font-size:11.5px}
+.gl dd{margin:1px 0 0 0;color:var(--dim);line-height:1.5}
+.gl .cat{margin-top:12px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--acc);font-weight:700}
+.grp{margin-bottom:15px}
+.grp h3{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);
+  margin:0 0 7px;font-weight:600}
+.chip{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 8px;
+  border-radius:6px;margin-bottom:4px;background:var(--panel2);cursor:pointer}
+.chip:hover{outline:1px solid #4a86c7}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.chip .via{margin-left:auto;color:var(--dim);font-size:10.5px}
+.empty{color:var(--dim);font-size:12px;font-style:italic}
+.count{color:var(--dim);font-weight:400;font-size:11px}
+#legend{position:absolute;left:14px;bottom:14px;background:rgba(20,24,32,.92);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.7}
+#legend b{display:block;margin-bottom:5px;font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+.lg{display:flex;align-items:center;gap:7px}
+.lg .dot{width:10px;height:10px}
+#ctrl{position:absolute;right:14px;top:14px;display:flex;gap:6px}
+#ctrl button{background:var(--panel);border:1px solid var(--line);color:var(--txt);
+  width:32px;height:32px;border-radius:7px;font-size:16px;cursor:pointer}
+#ctrl button:hover{background:var(--panel2)}
+#pagenav{position:absolute;left:14px;top:14px;display:flex;gap:6px}
+#pagenav a{background:var(--panel);border:1px solid var(--line);color:var(--txt);
+  padding:6px 14px;border-radius:16px;font-size:12.5px;font-weight:600;text-decoration:none}
+#pagenav a:hover{background:var(--panel2)}
+#pagenav a.gold{background:#d8b74a;border-color:#d8b74a;color:#181405}
+.node rect{transition:opacity .15s}
+.node text{pointer-events:none;font-size:12.5px;font-weight:600;fill:#fff}
+.node .fmt{font-size:9.5px;font-weight:500;fill:rgba(255,255,255,.8)}
+.edge{fill:none;transition:opacity .15s,stroke-width .15s}
+.sechead{font-size:15px;font-weight:700;fill:#93a1b5;letter-spacing:2px}
+.mapnote{font-size:12px;font-style:italic;fill:#8a95a5}
+.dt-h{font-size:13px;font-weight:700;fill:#e7ecf3;letter-spacing:.5px}
+.dt-l{font-size:12px;font-weight:600;fill:#cfd7e2}
+.dt-v{font-size:12px;fill:#8a95a5}
+.ehit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer}
+.elabel{font-size:9px;fill:var(--dim);pointer-events:none}
+.dim{opacity:.12}
+.dimtext{opacity:.25}
+</style></head>
+<body><div id="app">
+<div id="stage">
+  <svg id="svg"><g id="edges"></g><g id="nodes"></g></svg>
+  <div id="ctrl"><button id="zin">+</button><button id="zout">&minus;</button><button id="zreset" title="Reset">&#8634;</button></div>
+  <div id="pagenav"><a href="index.html">⌂ Home</a><a class="gold" href="guide.html">📖 Build guide</a></div>
+  <div id="legend"></div>
+</div>
+<div id="side">
+  <h1>Fairlight 5.1 Routing Map</h1>
+  <div class="subtitle">Click any track, VCA, bus or stem to trace its full signal path — or <b>click a connection line</b> to see exactly how to create that route in Resolve. Drag to pan, scroll to zoom.</div>
+  <span class="verchip">Verified against DaVinci Resolve Studio 21.0.2 · July 2026</span>
+
+  <details class="box" id="starthere" open><summary>🐣 New to mixing? Start here</summary>
+    <p>This whole template is a <b>river system</b>. Your audio clips sit on <b>tracks</b> (the lanes of the timeline). Each track flows into a <b>stem</b> — a submix that gathers one category together: all the talking in one place (DX), all the sound effects in another (FX), all the music in a third (MX). The stems then flow into the <b>Print Master</b> — the finished mix you actually listen to and export.</p>
+    <p>Why bother with the middle layer? Three reasons:</p>
+    <ul>
+      <li><b>Control:</b> one fader turns all dialogue up or down at once.</li>
+      <li><b>Deliverables:</b> broadcasters want the mix <i>and</i> the separated stems as files, so it can be re-edited or dubbed later.</li>
+      <li><b>The M&amp;E:</b> a version of the mix with no dialogue, needed so foreign broadcasters can dub in their own language. It's built automatically from the FX and MX stems.</li>
+    </ul>
+    <p>Riding alongside the river: <b>VCAs</b> (remote-control volume knobs that move several faders at once — no audio flows through them), <b>reverb buses</b> (shared echo machines many tracks can borrow), and <b>LFE buses</b> (collectors for deep bass that feed the subwoofer).</p>
+    <p><b>How to read the map:</b> audio flows left → right. Click any box for what it is + how to build it; click any line for what that connection does. Dotted-underlined words anywhere show a definition when you hover. Full glossary below.</p>
+  </details>
+
+  <details class="box" id="glossary"><summary>📖 Glossary — every acronym &amp; term</summary>
+    <dl class="gl">
+      <div class="cat">The sections (what the letters mean)</div>
+      <dt>DX</dt><dd>Dialogue — all spoken voice.</dd>
+      <dt>VO</dt><dd>Voice-Over — narration recorded in a booth, separate from filmed dialogue.</dd>
+      <dt>FX / SFX</dt><dd>(Sound) Effects — doors, cars, whooshes, hits.</dd>
+      <dt>PFX</dt><dd>Production Effects — non-speech sounds the dialogue microphones caught on location (footsteps, door slams). Kept with dialogue because they share its sound.</dd>
+      <dt>Futz</dt><dd>Voice deliberately degraded to sound like a phone, radio or TV.</dd>
+      <dt>Ambience / BG</dt><dd>Backgrounds — continuous atmosphere like room tone, wind, traffic.</dd>
+      <dt>MX</dt><dd>Music.</dd>
+      <dt>M&amp;E</dt><dd>Music &amp; Effects — the entire mix minus dialogue. Foreign broadcasters replace the speech with their own language, so they need everything else in one file. Usually a mandatory deliverable.</dd>
+      <div class="cat">Signal path</div>
+      <dt>Track</dt><dd>A lane in the timeline that holds audio clips. Has its own volume fader, pan, EQ and effects.</dd>
+      <dt>Bus</dt><dd>A meeting point that sums several signals into one. Think "group channel". Stems, reverbs, LFE collectors and masters are all buses — only their routing differs.</dd>
+      <dt>Stem</dt><dd>A bus used as a category submix (all dialogue, all FX…). Also exported as its own file.</dd>
+      <dt>Print Master</dt><dd>The final mix bus — everything summed. What you monitor and deliver. ("Print" is old film language for recording the final result.)</dd>
+      <dt>Send</dt><dd>A tap that siphons an adjustable copy of a signal to another bus (e.g. to a reverb). The original keeps flowing unaffected.</dd>
+      <dt>Return</dt><dd>The processed (wet) signal coming back from a reverb bus into a stem.</dd>
+      <dt>Aux</dt><dd>Auxiliary — the traditional name for a bus you reach via sends, like our reverb buses.</dd>
+      <dt>Insert</dt><dd>A processor placed directly in a channel's path, affecting everything through it (unlike a send, which is a parallel copy).</dd>
+      <dt>Fader</dt><dd>The volume slider of a track or bus.</dd>
+      <dt>−∞ (minus infinity)</dt><dd>A fader or send pulled all the way down: silence. Our template's sends are pre-wired at −∞ so projects open clean.</dd>
+      <dt>VCA</dt><dd>Voltage Controlled Amplifier — a historic mixing-desk term. In Resolve: a fader that remote-controls other faders (level, mute, solo). No audio passes through it.</dd>
+      <dt>Pan / Panner</dt><dd>Positions a sound between speakers. The surround panner places it anywhere in the 5.1 field.</dd>
+      <dt>Pre / post-fader</dt><dd>Whether a send taps the signal before or after the fader. Post (default) means the echo follows the fader down.</dd>
+      <dt>Automation</dt><dd>Recorded fader/knob moves that replay with the timeline.</dd>
+      <dt>Patching</dt><dd>Connecting signals to physical inputs/outputs (mics in, speakers out).</dd>
+      <div class="cat">Channels &amp; formats</div>
+      <dt>Mono / Stereo</dt><dd>One channel / two channels (Left + Right).</dd>
+      <dt>5.1</dt><dd>Six channels: Left, Right, Centre, LFE (subwoofer), Left surround, Right surround. The "5" are full-range speakers; the ".1" is the limited-range bass channel.</dd>
+      <dt>5.0</dt><dd>5.1 without the LFE channel — used for our surround reverbs, since echo doesn't belong in the subwoofer.</dd>
+      <dt>LFE</dt><dd>Low Frequency Effects — the ".1": a dedicated deep-bass channel for the subwoofer.</dd>
+      <dt>Ls / Rs</dt><dd>Left surround / Right surround — the rear speakers.</dd>
+      <dt>SMPTE order</dt><dd>The standard channel order in delivered files: L R C LFE Ls Rs. (Film order differs: L C R Ls Rs LFE.)</dd>
+      <dt>Downmix / fold-down</dt><dd>Automatically converting a surround mix to stereo.</dd>
+      <dt>Lt/Rt vs Lo/Ro</dt><dd>Two stereo flavours: Lt/Rt ("total") encodes the surround info so it can be decoded back; Lo/Ro ("only") is a plain stereo sum. Your broadcaster's spec says which.</dd>
+      <dt>Bass management</dt><dd>A playback system automatically re-routing low frequencies to the subwoofer. Our LFE buses exist so we control the sub deliberately instead.</dd>
+      <dt>48 kHz / 24-bit</dt><dd>Professional sample rate and bit depth for film/TV audio files.</dd>
+      <div class="cat">Loudness &amp; delivery</div>
+      <dt>LUFS / LKFS</dt><dd>Loudness Units relative to Full Scale — the standard measure of perceived loudness. LKFS is the identical US name. More negative = quieter (−24 is quieter than −14).</dd>
+      <dt>Integrated</dt><dd>The single loudness number for the whole programme — what specs are judged on.</dd>
+      <dt>Short-term / Momentary</dt><dd>Loudness over the last 3 s / 400 ms — for watching in the moment.</dd>
+      <dt>LRA</dt><dd>Loudness Range — how much the loudness varies. Broadcast tolerates less range than cinema.</dd>
+      <dt>dBTP / true peak</dt><dd>Decibels True Peak — the real maximum after digital-to-analogue conversion. Specs cap it (e.g. −2 dBTP) to prevent distortion on consumer gear.</dd>
+      <dt>Dialog-gated</dt><dd>Loudness measured only while speech is present — how Netflix-style services measure. Narration-heavy shows read very differently this way.</dd>
+      <dt>EBU R128</dt><dd>European broadcast loudness standard: −23 LUFS.</dd>
+      <dt>ATSC A/85 · CALM</dt><dd>US broadcast standard (−24 LKFS) and the US law that enforces it.</dd>
+      <dt>Deliverable</dt><dd>Any file the client/broadcaster contractually requires: masters, stems, M&amp;E…</dd>
+      <dt>WAV / AAC / MP3</dt><dd>WAV = uncompressed professional file. AAC/MP3 = compressed web formats (Webmix only).</dd>
+      <dt>.drp</dt><dd>A DaVinci Resolve Project export file — how you save this template for reuse.</dd>
+      <div class="cat">Processing</div>
+      <dt>EQ (Equaliser)</dt><dd>Boosts or cuts chosen frequency ranges — tone control.</dd>
+      <dt>Compressor</dt><dd>Automatically turns down loud moments, evening out the level. Ratio (e.g. 3:1) sets how firmly.</dd>
+      <dt>Limiter</dt><dd>A brick-wall compressor that stops the signal exceeding a ceiling — the last safety net.</dd>
+      <dt>De-esser</dt><dd>Tames harsh "S" sounds in a voice.</dd>
+      <dt>Reverb</dt><dd>Simulates a space's echo — room, hall, plate.</dd>
+      <dt>Low-pass filter</dt><dd>Lets frequencies below a cutoff through, removes the rest. ~120 Hz on our LFE buses keeps only sub-bass.</dd>
+      <dt>Chain FX</dt><dd>Resolve 21 feature: several plugins saved together as one reusable preset.</dd>
+    </dl>
+  </details>
+
+  <details class="box" id="vernotes"><summary>Resolve 21 version notes — read once (FlexBus)</summary>
+    <p><b>Bussing changed in v17 and this map's "Main / Sub / Aux" labels are roles, not bus types.</b> Modern Resolve uses <b>FlexBus</b>: every bus is created the same way (<b>Fairlight ▸ Bus Format ▸ Add Bus</b> — set name, format, colour) and its role comes from routing:</p>
+    <ul>
+      <li><b>"Sub" (stems):</b> a bus that track <b>Bus Outputs</b> feed into.</li>
+      <li><b>"Aux" (reverbs):</b> a bus reached only via <b>Bus Sends</b>; its own output returns to a stem.</li>
+      <li><b>"Main" (print masters):</b> the last bus in the chain, monitored and delivered.</li>
+    </ul>
+    <p>FlexBus limits: a track can output to up to <b>10 buses</b> and send to <b>10 more</b>; buses can feed other buses up to <b>6 layers deep</b>. The legacy fixed Main/Sub/Aux topology still exists (Project Settings ▸ Fairlight ▸ "Use fixed bus mapping", new empty projects only; converting old projects to FlexBus is one-way) — don't use it for new work.</p>
+    <p><b>VCAs are real:</b> up to 16 groups via <b>Fairlight ▸ VCA Assign</b> (or the Mixer's Group dropdown). VCA masters appear to the right of the buses in the Mixer.</p>
+    <p><b>Free vs Studio:</b> buses, VCAs, 5.1, FairlightFX and loudness metering all work in the free version. Studio adds immersive formats (5.1.2–9.1.6 / Atmos — enable in Preferences ▸ Video and Audio I/O ▸ Immersive Audio), Dolby Digital encoding, and the AI voice tools.</p>
+    <p><b>New since this template was specced:</b></p>
+    <ul>
+      <li><b>v20:</b> AI Audio Assistant (auto first-pass mix — fine for temp mixes, not a replacement for this routing), AI Dialogue Separator &amp; Dialogue Matcher, Voice Isolation, full mixer + loudness metering on the Cut page.</li>
+      <li><b>v21:</b> <b>audio track folders</b> (collapse the 11 source tracks into Dial / FX / Amb / Mus groups), 6-band Clip EQ, <b>Chain FX</b> presets (save the Webmix comp+limiter as one preset, up to 6 FX), EQ Match / Level Matcher clip processing, new Fairlight Audio Core (higher track/plugin counts). 21.0.1 / 21.0.2 are maintenance releases — no Fairlight routing changes.</li>
+    </ul>
+    <p><b>Export:</b> 48 kHz / 24-bit; 5.1 SMPTE channel order <b>L R C LFE Ls Rs</b> (film order is L C R Ls Rs LFE — deliver SMPTE unless the spec says otherwise).</p>
+  </details>
+
+  <details class="box" id="buildorder"><summary>Build order — quick checklist</summary>
+    <ol>
+      <li><b>Project:</b> new project, Project Settings ▸ Fairlight ▸ 48 kHz sample rate; leave "Use fixed bus mapping" <b>off</b> (FlexBus).</li>
+      <li><b>Buses first:</b> Fairlight ▸ Bus Format ▸ <b>Add Bus × 21</b>. The <b>Format column is where you decide mono / stereo / 5.1</b> for each bus — set it exactly:
+        <table>
+          <tr><th>Bus</th><th>Format</th></tr>
+          <tr><td>5.1 Print Master</td><td><b>5.1</b></td></tr>
+          <tr><td>Stereo Print Master · Webmix Stereo</td><td><b>Stereo</b></td></tr>
+          <tr><td>DX / FX / MX / M&amp;E Stem</td><td><b>5.1</b> (×4)</td></tr>
+          <tr><td>Stereo DX / FX / MX / M&amp;E Stem</td><td><b>Stereo</b> (×4)</td></tr>
+          <tr><td>FX LFE Bus · Music LFE Bus</td><td><b>Mono</b> (becomes the .1 feed)</td></tr>
+          <tr><td>DX Verb ×3 · FX Verb ×3</td><td><b>Mono / Stereo / 5.0</b></td></tr>
+          <tr><td>MX Verb ×2</td><td><b>Stereo / 5.0</b></td></tr>
+        </table>
+        Exact names matter: they appear in every routing dropdown. (Reverbs are 5.0, not 5.1 — no echo in the subwoofer.)</li>
+      <li><b>Bus-to-bus routing:</b> Fairlight ▸ Bus Assign — stems → print masters; FX/MX stems also → M&amp;E; LFE buses → their stems (panned 100% to LFE); reverbs → their stems; Stereo PM → Webmix. M&amp;E gets <b>no</b> onward routing.</li>
+      <li><b>Tracks:</b> add the 11 source tracks with correct widths, rename, colour-code. (v21 tip: group them into track folders per section.)</li>
+      <li><b>Track outputs:</b> each track → its 5.1 stem <b>and</b> stereo stem (Mixer Bus Outputs +, or Alt/Option-click for multi-assign).</li>
+      <li><b>Panning:</b> dialogue hard Centre; FX across the field, Centre clear; ambience wide into surrounds; music L/R or discrete 5.1.</li>
+      <li><b>LFE sends:</b> FX + Music tracks → Bus Sends → LFE buses; low-pass ~120 Hz on each LFE bus.</li>
+      <li><b>Reverbs:</b> FairlightFX Reverb on each verb bus; pre-route track sends at −∞.</li>
+      <li><b>VCAs:</b> Fairlight ▸ VCA Assign — 4 groups (Dialogue / FX / Ambience / Music).</li>
+      <li><b>Monitoring + meters:</b> monitor the 5.1 PM (Control Room); loudness meters on both print masters — pick the standard in the meter options; use dialog-gated mode for the streaming check.</li>
+      <li><b>Webmix:</b> Compressor + Limiter on the Webmix bus (~3:1, ceiling −1 dBTP, ≈ −14 LUFS). Save as a Chain FX preset.</li>
+      <li><b>Save template:</b> File ▸ Export Project (.drp), keep as master template.</li>
+    </ol>
+  </details>
+
+  <details class="box" id="delivery"><summary>Delivery targets (documentary)</summary>
+    <table>
+      <tr><th>Target</th><th>Loudness</th><th>Peak</th><th>Gating</th></tr>
+      <tr><td>US broadcast (ATSC A/85 · CALM)</td><td>&minus;24 LKFS</td><td>&minus;2 dBTP</td><td>program</td></tr>
+      <tr><td>EU broadcast (EBU R128)</td><td>&minus;23 LUFS</td><td>&minus;1 dBTP</td><td>program</td></tr>
+      <tr><td>Streaming (Netflix-style)</td><td>&minus;27 LKFS</td><td>&minus;2 dBTP</td><td>dialog-gated</td></tr>
+      <tr><td>Web / social (Webmix)</td><td>&minus;14 to &minus;16 LUFS</td><td>&minus;1 dBTP</td><td>program</td></tr>
+    </table>
+    <p>No single master fits all — deliver a program master (~&minus;24), a dialog-gated streaming pass (&minus;27), and a web version off the Webmix bus. Verify numbers against each recipient's current spec sheet. Resolve's monitoring-panel loudness meters colour-code against the chosen standard (blue = in spec, yellow = tolerance, red = over); you can also right-click any clip ▸ <b>Analyze Audio Level</b> for an offline read.</p>
+  </details>
+
+  <div id="panel"><div class="hint">Nothing selected.<br><br>Click a <b>node</b> to see what feeds it, where it goes, everything downstream it affects — plus step-by-step build instructions for Resolve 21.<br><br>Click a <b>connection line</b> to learn what that route does and exactly how to create it.</div></div>
+</div>
+</div>
+<script>
+const DATA={"nodes":[{"id":"vo","label":"Narration / VO","sub":"Mono","cat":"track_dx","x":480,"y":60,"color":"#3b7dd8","desc":"Dialogue source track. Panned to Center. Feeds the DX stems; kept DRY (no reverb send). Because streaming loudness is dialog-gated, this track largely drives loudness compliance."},{"id":"dx","label":"DX (Dialogue)","sub":"Mono","cat":"track_dx","x":480,"y":158,"color":"#3b7dd8","desc":"Sync dialogue source track. Panned to Center. Feeds the DX stems and sends to all three DX reverbs."},{"id":"futz","label":"Futz","sub":"Mono","cat":"track_dx","x":480,"y":256,"color":"#3b7dd8","desc":"Degraded-voice track (phone / radio / TV speaker). The futz EQ/distortion lives as clip FX or track inserts; routing-wise it behaves as normal dialogue."},{"id":"pfx","label":"PFX","sub":"Mono","cat":"track_dx","x":480,"y":354,"color":"#3b7dd8","desc":"Production effects cut with dialogue. Kept in the DX stem so they stay with dialogue; typically excluded from M&E for that reason."},{"id":"fxa","label":"FX A","sub":"Mono","cat":"track_fx","x":480,"y":452,"color":"#e08a3c","desc":"Effects source track. Feeds the FX stems, the FX LFE bus, and FX reverbs."},{"id":"fxb","label":"FX B","sub":"Mono","cat":"track_fx","x":480,"y":550,"color":"#e08a3c","desc":"Effects source track. Feeds the FX stems and the FX LFE bus; add verb sends per project as needed."},{"id":"fxc","label":"FX C","sub":"Stereo","cat":"track_fx","x":480,"y":648,"color":"#e08a3c","desc":"Stereo effects source track. Feeds the FX stems, the FX LFE bus, and the stereo FX reverb."},{"id":"amba","label":"Ambience A","sub":"Mono","cat":"track_amb","x":480,"y":746,"color":"#54b054","desc":"Ambience source track. Folded into the FX stems (standard for backgrounds / M&E). Panned wide into the surrounds."},{"id":"ambb","label":"Ambience B","sub":"Stereo","cat":"track_amb","x":480,"y":844,"color":"#54b054","desc":"Stereo ambience source track. Folded into the FX stems. Panned wide into the surrounds."},{"id":"muxst","label":"Music (Stereo)","sub":"Stereo","cat":"track_mux","x":480,"y":942,"color":"#a86fd0","desc":"Stereo music source track. Feeds the MX stems, Music LFE bus, and the stereo MX reverb. Panned to the L/R fronts."},{"id":"mux51","label":"Music (5.1)","sub":"5.1","cat":"track_mux","x":480,"y":1040,"color":"#a86fd0","desc":"Discrete 5.1 music source track. Passes through to the MX stems channel-for-channel; also feeds the Music LFE bus and the 5.0 MX reverb."},{"id":"vca_dx","label":"Dialogue VCA","sub":"control","cat":"vca","x":60,"y":403,"color":"#e05a4d","desc":"VCA control fader. Carries NO audio — it rides fader, mute and solo of every assigned track. One fader for the whole dialogue section."},{"id":"vca_fx","label":"FX VCA","sub":"control","cat":"vca","x":60,"y":501,"color":"#e05a4d","desc":"VCA control fader. Carries NO audio — it rides fader, mute and solo of every assigned track."},{"id":"vca_amb","label":"Ambience VCA","sub":"control","cat":"vca","x":60,"y":599,"color":"#e05a4d","desc":"VCA control fader. Carries NO audio — it rides fader, mute and solo of every assigned track."},{"id":"vca_mx","label":"Music VCA","sub":"control","cat":"vca","x":60,"y":697,"color":"#e05a4d","desc":"VCA control fader. Carries NO audio — it rides fader, mute and solo of every assigned track."},{"id":"rv_dx_m","label":"DX Verb","sub":"Mono","cat":"reverb","x":840,"y":109,"color":"#1ab4b4","desc":"Mono dialogue reverb bus (aux role). Tracks reach it via Bus Sends only; its wet output returns into the DX Stem."},{"id":"rv_dx_s","label":"DX Verb","sub":"Stereo","cat":"reverb","x":840,"y":207,"color":"#1ab4b4","desc":"Stereo dialogue reverb bus (aux role). Tracks reach it via Bus Sends only; its wet output returns into the DX Stem."},{"id":"rv_dx_5","label":"DX Verb","sub":"5.0","cat":"reverb","x":840,"y":305,"color":"#1ab4b4","desc":"5.0 dialogue reverb bus (aux role, surround — no LFE). Returns into the DX Stem's L/R/C/Ls/Rs."},{"id":"rv_fx_m","label":"FX Verb","sub":"Mono","cat":"reverb","x":840,"y":403,"color":"#1ab4b4","desc":"Mono effects reverb bus (aux role). Returns into the FX Stem."},{"id":"rv_fx_s","label":"FX Verb","sub":"Stereo","cat":"reverb","x":840,"y":501,"color":"#1ab4b4","desc":"Stereo effects reverb bus (aux role). Returns into the FX Stem."},{"id":"rv_fx_5","label":"FX Verb","sub":"5.0","cat":"reverb","x":840,"y":599,"color":"#1ab4b4","desc":"5.0 effects reverb bus (aux role, no LFE). Returns into the FX Stem."},{"id":"rv_mx_s","label":"MX Verb","sub":"Stereo","cat":"reverb","x":840,"y":795,"color":"#1ab4b4","desc":"Stereo music reverb bus (aux role). Returns into the MX Stem."},{"id":"rv_mx_5","label":"MX Verb","sub":"5.0","cat":"reverb","x":840,"y":893,"color":"#1ab4b4","desc":"5.0 music reverb bus (aux role, no LFE — hall/scoring presets). Returns into the MX Stem."},{"id":"lfe_fx","label":"FX LFE Bus","sub":"Mono .1","cat":"lfe","x":840,"y":697,"color":"#c77dff","desc":"Mono LFE bus for effects. Low-passed (~120 Hz) sub-bass fed by track sends; its output is steered 100% into the FX Stem's LFE channel. Gives you deliberate low-end instead of relying on bass management."},{"id":"lfe_mx","label":"Music LFE Bus","sub":"Mono .1","cat":"lfe","x":840,"y":991,"color":"#c77dff","desc":"Mono LFE bus for music. Low-passed (~120 Hz) sub-bass fed by track sends; its output is steered 100% into the MX Stem's LFE channel."},{"id":"st_dx","label":"DX Stem","sub":"5.1 Sub","cat":"stem_dx","x":1240,"y":403,"color":"#4a86c7","desc":"Dialogue submix (stem role). A deliverable in its own right; also feeds the 5.1 Print Master. DX reverbs return here so wet dialogue stays inside the dialogue deliverable."},{"id":"st_fx","label":"FX Stem","sub":"5.1 Sub","cat":"stem_fx","x":1240,"y":501,"color":"#c9812f","desc":"Effects submix (stem role) — includes ambience and the FX LFE feed. Feeds the 5.1 Print Master AND the M&E stem."},{"id":"st_mx","label":"MX Stem","sub":"5.1 Sub","cat":"stem_mx","x":1240,"y":599,"color":"#8e5bb0","desc":"Music submix (stem role) — includes the Music LFE feed. Feeds the 5.1 Print Master AND the M&E stem."},{"id":"st_me","label":"M&E Stem","sub":"5.1 Sub","cat":"stem_me","x":1240,"y":697,"color":"#7a94a3","desc":"Music & Effects stem — everything except dialogue, built bus-to-bus from the FX and MX stems so it can never drift out of sync with the mix. Deliverable only (foreign-language dubbing); usually a mandatory deliverable."},{"id":"sst_dx","label":"Stereo DX Stem","sub":"Stereo Sub","cat":"stem_dx","x":1600,"y":403,"color":"#4a86c7","desc":"Stereo dialogue submix (stem role). A deliverable; also feeds the Stereo Print Master."},{"id":"sst_fx","label":"Stereo FX Stem","sub":"Stereo Sub","cat":"stem_fx","x":1600,"y":501,"color":"#c9812f","desc":"Stereo effects submix (stem role, includes ambience). Feeds the Stereo Print Master AND the Stereo M&E stem."},{"id":"sst_mx","label":"Stereo MX Stem","sub":"Stereo Sub","cat":"stem_mx","x":1600,"y":599,"color":"#8e5bb0","desc":"Stereo music submix (stem role). Feeds the Stereo Print Master AND the Stereo M&E stem."},{"id":"sst_me","label":"Stereo M&E Stem","sub":"Stereo Sub","cat":"stem_me","x":1600,"y":697,"color":"#7a94a3","desc":"Stereo Music & Effects stem — everything except dialogue. Deliverable only (foreign dubbing)."},{"id":"pm_51","label":"5.1 Print Master","sub":"5.1 Main","cat":"main","x":1980,"y":501,"color":"#d8b74a","desc":"The final 5.1 mix bus (main role). Monitored via the Control Room and delivered as the surround master. Watch the loudness meters here — integrated LUFS/LKFS, true peak and LRA against your delivery standard."},{"id":"pm_st","label":"Stereo Print Master","sub":"Stereo Main","cat":"main","x":1980,"y":599,"color":"#d8b74a","desc":"The final stereo mix bus (main role). Set the downmix flavour your broadcaster requires (Lt/Rt vs Lo/Ro). Feeds the Webmix bus and is delivered as the stereo master. Meter it independently of the 5.1."},{"id":"webmix","label":"Webmix Stereo","sub":"Compressed","cat":"web","x":2340,"y":550,"color":"#95a3a8","desc":"Compressed stereo bus for quick web previews. Compressor + limiter (~3:1, ceiling −1 dBTP), landing around −14 LUFS so it sounds loud and consistent on the web without normalisation surprises."}],"edges":[{"f":"vca_dx","t":"vo","k":"control"},{"f":"vca_dx","t":"dx","k":"control"},{"f":"vca_dx","t":"futz","k":"control"},{"f":"vca_dx","t":"pfx","k":"control"},{"f":"vca_fx","t":"fxa","k":"control"},{"f":"vca_fx","t":"fxb","k":"control"},{"f":"vca_fx","t":"fxc","k":"control"},{"f":"vca_amb","t":"amba","k":"control"},{"f":"vca_amb","t":"ambb","k":"control"},{"f":"vca_mx","t":"muxst","k":"control"},{"f":"vca_mx","t":"mux51","k":"control"},{"f":"vo","t":"st_dx","k":"audio"},{"f":"vo","t":"sst_dx","k":"audio"},{"f":"dx","t":"st_dx","k":"audio"},{"f":"dx","t":"sst_dx","k":"audio"},{"f":"futz","t":"st_dx","k":"audio"},{"f":"futz","t":"sst_dx","k":"audio"},{"f":"pfx","t":"st_dx","k":"audio"},{"f":"pfx","t":"sst_dx","k":"audio"},{"f":"fxa","t":"st_fx","k":"audio"},{"f":"fxa","t":"sst_fx","k":"audio"},{"f":"fxb","t":"st_fx","k":"audio"},{"f":"fxb","t":"sst_fx","k":"audio"},{"f":"fxc","t":"st_fx","k":"audio"},{"f":"fxc","t":"sst_fx","k":"audio"},{"f":"amba","t":"st_fx","k":"audio"},{"f":"amba","t":"sst_fx","k":"audio"},{"f":"ambb","t":"st_fx","k":"audio"},{"f":"ambb","t":"sst_fx","k":"audio"},{"f":"muxst","t":"st_mx","k":"audio"},{"f":"muxst","t":"sst_mx","k":"audio"},{"f":"mux51","t":"st_mx","k":"audio"},{"f":"mux51","t":"sst_mx","k":"audio"},{"f":"fxa","t":"lfe_fx","k":"lfe"},{"f":"fxb","t":"lfe_fx","k":"lfe"},{"f":"fxc","t":"lfe_fx","k":"lfe"},{"f":"muxst","t":"lfe_mx","k":"lfe"},{"f":"mux51","t":"lfe_mx","k":"lfe"},{"f":"lfe_fx","t":"st_fx","k":"lfe"},{"f":"lfe_mx","t":"st_mx","k":"lfe"},{"f":"dx","t":"rv_dx_m","k":"send"},{"f":"dx","t":"rv_dx_s","k":"send"},{"f":"dx","t":"rv_dx_5","k":"send"},{"f":"pfx","t":"rv_dx_s","k":"send"},{"f":"fxa","t":"rv_fx_m","k":"send"},{"f":"fxa","t":"rv_fx_5","k":"send"},{"f":"fxc","t":"rv_fx_s","k":"send"},{"f":"muxst","t":"rv_mx_s","k":"send"},{"f":"mux51","t":"rv_mx_5","k":"send"},{"f":"rv_dx_m","t":"st_dx","k":"return"},{"f":"rv_dx_s","t":"st_dx","k":"return"},{"f":"rv_dx_5","t":"st_dx","k":"return"},{"f":"rv_fx_m","t":"st_fx","k":"return"},{"f":"rv_fx_s","t":"st_fx","k":"return"},{"f":"rv_fx_5","t":"st_fx","k":"return"},{"f":"rv_mx_s","t":"st_mx","k":"return"},{"f":"rv_mx_5","t":"st_mx","k":"return"},{"f":"st_fx","t":"st_me","k":"busme"},{"f":"st_mx","t":"st_me","k":"busme"},{"f":"sst_fx","t":"sst_me","k":"busme"},{"f":"sst_mx","t":"sst_me","k":"busme"},{"f":"st_dx","t":"pm_51","k":"busmain"},{"f":"st_fx","t":"pm_51","k":"busmain"},{"f":"st_mx","t":"pm_51","k":"busmain"},{"f":"sst_dx","t":"pm_st","k":"busmain"},{"f":"sst_fx","t":"pm_st","k":"busmain"},{"f":"sst_mx","t":"pm_st","k":"busmain"},{"f":"pm_st","t":"webmix","k":"busmain"}],"w":2610,"h":1174,"cw":210,"ch":74};
+
+/* ---------- How-to content (DaVinci Resolve Studio 21.0.2, FlexBus) ---------- */
+const TRK={
+ vo:{fmt:"Mono",color:"Blue",outs:["DX Stem","Stereo DX Stem"],vca:"Dialogue VCA",sends:[],lfe:null,
+  pan:"double-click the pan pot to open the surround panner ▸ hard <b>Centre</b> (or phantom L/R if you want VO slightly wider than sync dialogue).",
+  note:"Keep VO <b>dry</b> — no reverb send. Give it a dedicated de-esser and light compression (channel-strip dynamics or FairlightFX). Streaming loudness is dialog-gated, so this track largely decides whether you pass the −27 LKFS Netflix-style check.",
+  why:"Narration intelligibility carries an information piece; its own fader, its own processing chain, and no shared reverb keep it fully independent of the sync dialogue."},
+ dx:{fmt:"Mono",color:"Blue",outs:["DX Stem","Stereo DX Stem"],vca:"Dialogue VCA",sends:["DX Verb Mono","DX Verb Stereo","DX Verb 5.0"],lfe:null,
+  pan:"surround panner ▸ hard <b>Centre</b>. Dialogue lives in the centre channel.",
+  note:"Sync dialogue. All three DX verb widths are pre-routed so you can match any space instantly.",
+  why:"Centre-channel dialogue is the film/TV convention: it stays anchored to the screen for every seat in the room and folds down predictably."},
+ futz:{fmt:"Mono",color:"Blue",outs:["DX Stem","Stereo DX Stem"],vca:"Dialogue VCA",sends:[],lfe:null,
+  pan:"surround panner ▸ hard <b>Centre</b>.",
+  note:"Futz = deliberately degraded voice (phone, radio, TV). Do the degradation with clip FX or track inserts (band-pass EQ ~300 Hz–3 kHz, distortion). v21's 6-band Clip EQ makes per-clip futzing easy.",
+  why:"Keeping futzed voice on its own track means the effect chain never touches clean dialogue, and you can still ride it with the Dialogue VCA."},
+ pfx:{fmt:"Mono",color:"Blue",outs:["DX Stem","Stereo DX Stem"],vca:"Dialogue VCA",sends:["DX Verb Stereo"],lfe:null,
+  pan:"surround panner ▸ <b>Centre</b> (production effects travel with dialogue).",
+  note:"Production effects recorded with the dialogue takes. They live in the DX stem so foreign-language M&E excludes them — replace them with library FX in the dub if needed.",
+  why:"PFX belongs with dialogue because it shares the same recording acoustics; separating it from library FX keeps the M&E clean."},
+ fxa:{fmt:"Mono",color:"Orange",outs:["FX Stem","Stereo FX Stem"],vca:"FX VCA",sends:["FX Verb Mono","FX Verb 5.0"],lfe:"FX LFE Bus",
+  pan:"surround panner ▸ place across <b>L/R/Ls/Rs</b> to taste; keep Centre mostly clear so effects don't fight dialogue.",
+  note:"Hard-effects workhorse track A.",
+  why:"Multiple mono FX tracks let you checkerboard sound effects so overlapping cues get independent faders and automation."},
+ fxb:{fmt:"Mono",color:"Orange",outs:["FX Stem","Stereo FX Stem"],vca:"FX VCA",sends:[],lfe:"FX LFE Bus",
+  pan:"surround panner ▸ across <b>L/R/Ls/Rs</b>; Centre mostly clear.",
+  note:"Second mono FX track. Verb sends aren't pre-routed here — add them per project (Bus Sends ▸ +).",
+  why:"A lean default: not every FX track needs reverb pre-wired, and FlexBus lets you add a send in two clicks when it does."},
+ fxc:{fmt:"Stereo",color:"Orange",outs:["FX Stem","Stereo FX Stem"],vca:"FX VCA",sends:["FX Verb Stereo"],lfe:"FX LFE Bus",
+  pan:"surround panner ▸ stereo image into the fronts, spread/rotate as needed.",
+  note:"Stereo FX track for wide elements (whooshes, design beds).",
+  why:"Stereo design elements keep their width instead of being summed to mono."},
+ amba:{fmt:"Mono",color:"Green",outs:["FX Stem","Stereo FX Stem"],vca:"Ambience VCA",sends:[],lfe:null,
+  pan:"surround panner ▸ <b>wide, into the surrounds (Ls/Rs)</b> for immersion.",
+  note:"Ambience folds into the FX stem — standard practice for backgrounds and M&E. Need ambience as its own deliverable later? Add a BG Stem; the structure supports it.",
+  why:"Backgrounds in the surrounds create the room the audience sits in, while staying out of dialogue's way in the front."},
+ ambb:{fmt:"Stereo",color:"Green",outs:["FX Stem","Stereo FX Stem"],vca:"Ambience VCA",sends:[],lfe:null,
+  pan:"surround panner ▸ wide into <b>Ls/Rs</b>, or front-to-surround spread for stereo beds.",
+  note:"Stereo ambience bed track.",
+  why:"Stereo beds (roomtones, atmos recordings) spread naturally across the surround field."},
+ muxst:{fmt:"Stereo",color:"Purple",outs:["MX Stem","Stereo MX Stem"],vca:"Music VCA",sends:["MX Verb Stereo"],lfe:"Music LFE Bus",
+  pan:"surround panner ▸ <b>L/R fronts</b>.",
+  note:"Standard stereo score/library music.",
+  why:"Music in the fronts leaves the surrounds for ambience and keeps the fold-down predictable."},
+ mux51:{fmt:"5.1",color:"Purple",outs:["MX Stem","Stereo MX Stem"],vca:"Music VCA",sends:["MX Verb 5.0"],lfe:"Music LFE Bus",
+  pan:"panner stays neutral — a 5.1 track passes <b>channel-for-channel</b> into the 5.1 stem.",
+  note:"For surround score deliveries. Its LFE content already exists in the file; the Music LFE send is there for reinforcing stereo-sourced cues.",
+  why:"Discrete 5.1 music keeps the composer's surround placement intact instead of re-panning a fold-down."}
+};
+function trackHow(id){const o=TRK[id];const s=[
+ `<b>Create:</b> right-click a track header ▸ Add Track ▸ <b>${o.fmt}</b> (or Fairlight ▸ Track ▸ Add Track). Double-click the name to rename; right-click ▸ Change Track Color ▸ <b>${o.color}</b>.`,
+ `<b>Outputs:</b> Mixer ▸ this strip's <b>Bus Outputs ▸ +</b> ▸ ${o.outs[0]}, then <b>+</b> again ▸ ${o.outs[1]}. (Or Fairlight ▸ Bus Assign. Multi-track shortcut: select several tracks, hold Alt/Option, click +.)`,
+ `<b>Pan:</b> ${o.pan}`];
+ if(o.sends.length)s.push(`<b>Reverb sends:</b> Mixer ▸ <b>Bus Sends ▸ +</b> ▸ ${o.sends.join(", ")}. Leave levels at −∞ in the template (routed but silent); right-click a send for pre/post (post-fader is typical).`);
+ if(o.lfe)s.push(`<b>LFE send:</b> Bus Sends ▸ + ▸ <b>${o.lfe}</b> (also −∞ in the clean template).`);
+ s.push(`<b>VCA:</b> Fairlight ▸ <b>VCA Assign</b> ▸ add this track to <b>${o.vca}</b> (or Mixer ▸ Group dropdown).`);
+ if(o.note)s.push(o.note);
+ return {steps:s,why:o.why};
+}
+const VCA_M={vca_dx:["Narration / VO","DX (Dialogue)","Futz","PFX"],vca_fx:["FX A","FX B","FX C"],vca_amb:["Ambience A","Ambience B"],vca_mx:["Music (Stereo)","Music (5.1)"]};
+function vcaHow(id,label){return{steps:[
+ `<b>Create:</b> Fairlight ▸ <b>VCA Assign</b> ▸ add a VCA group and name it "<b>${label}</b>". Resolve supports up to 16 VCA groups.`,
+ `<b>Assign members:</b> in the same window tick: ${VCA_M[id].join(", ")}. (Per-track alternative: Mixer ▸ Group dropdown on each member strip.)`,
+ `The VCA master fader appears to the <b>right of the buses</b> in the Mixer.`,
+ `<b>Remember:</b> a VCA carries no audio and has no routing — it trims member faders and follows mute/solo. Member tracks keep their own bus assignments regardless.`],
+ why:"VCAs give one-fader control of a whole section without collapsing it to a bus, so per-track automation, panning and stem routing stay untouched. This is your top-level balance layer while mixing."};}
+const RV={rv_dx_m:{fmt:"Mono",ret:"DX Stem",preset:"small room / plate"},rv_dx_s:{fmt:"Stereo",ret:"DX Stem",preset:"room / plate"},rv_dx_5:{fmt:"5.0",ret:"DX Stem",preset:"hall / large space (no LFE)"},rv_fx_m:{fmt:"Mono",ret:"FX Stem",preset:"small room"},rv_fx_s:{fmt:"Stereo",ret:"FX Stem",preset:"room / chamber"},rv_fx_5:{fmt:"5.0",ret:"FX Stem",preset:"hall / exterior (no LFE)"},rv_mx_s:{fmt:"Stereo",ret:"MX Stem",preset:"plate / hall"},rv_mx_5:{fmt:"5.0",ret:"MX Stem",preset:"scoring stage / hall (no LFE)"}};
+function rvHow(id,label){const o=RV[id];return{steps:[
+ `<b>Create:</b> Fairlight ▸ <b>Bus Format ▸ Add Bus</b> ▸ rename "<b>${label} ${o.fmt}</b>" ▸ Format: <b>${o.fmt}</b> ▸ pick a colour. (FlexBus has no "Aux" type — this bus behaves as an aux because tracks reach it via Bus Sends.)`,
+ `<b>Insert reverb:</b> Mixer ▸ this bus's Effects slot ▸ <b>+ ▸ FairlightFX ▸ Reverb</b>. Choose a ${o.preset} preset; set the plugin 100% wet (the dry path already goes to the stem).`,
+ `<b>Return:</b> Mixer ▸ <b>Bus Outputs ▸ +</b> ▸ <b>${o.ret}</b> (or Fairlight ▸ Bus Assign ▸ select this bus's Out ▸ click ${o.ret}).`,
+ `<b>Feed it only via Bus Sends</b> from tracks — never assign a track's main output here.`],
+ why:"Aux-style reverbs let many tracks share one space at independent send levels, and returning the verb into the matching stem keeps wet signal inside the correct deliverable (dialogue verb stays in the DX stem, so the M&E is never polluted by dialogue tails)."};}
+const LFE={lfe_fx:{ret:"FX Stem",srcs:"FX A / FX B / FX C"},lfe_mx:{ret:"MX Stem",srcs:"Music (Stereo) / Music (5.1)"}};
+function lfeHow(id,label){const o=LFE[id];return{steps:[
+ `<b>Create:</b> Fairlight ▸ <b>Bus Format ▸ Add Bus</b> ▸ rename "<b>${label}</b>" ▸ Format: <b>Mono</b>.`,
+ `<b>Low-pass it:</b> Mixer ▸ Effects slot ▸ FairlightFX EQ (or the strip EQ) set as a <b>low-pass around 120 Hz</b> so only sub-bass passes.`,
+ `<b>Output:</b> Bus Outputs ▸ + ▸ <b>${o.ret}</b>, then open this bus's output panner and steer the signal <b>100% to the LFE channel</b> (LFE contribution full, mains zero).`,
+ `<b>Fed by:</b> Bus Sends from ${o.srcs} (kept at −∞ in the clean template; dial up per cue).`],
+ why:"A dedicated LFE bus gives you deliberate, mixable control of the .1 channel — you choose what shakes the subwoofer — rather than relying on downstream bass management. Separate FX and Music LFE buses mean the M&E and mix stems each carry their own correct low end."};}
+const STEM={
+ st_dx:{fmt:"5.1",outs:["5.1 Print Master"],col:"Blue",extra:"DX reverbs return here (their Bus Outputs point at this stem)."},
+ st_fx:{fmt:"5.1",outs:["5.1 Print Master","M&E Stem"],col:"Orange",extra:"Receives FX + Ambience tracks, the FX verbs, and the FX LFE Bus (into its LFE channel)."},
+ st_mx:{fmt:"5.1",outs:["5.1 Print Master","M&E Stem"],col:"Purple",extra:"Receives Music tracks, MX verbs, and the Music LFE Bus (into its LFE channel)."},
+ st_me:{fmt:"5.1",outs:[],col:"Grey",extra:"Fed bus-to-bus by the FX and MX stems only. Leave its own output UNASSIGNED — deliverable, not part of the monitored mix."},
+ sst_dx:{fmt:"Stereo",outs:["Stereo Print Master"],col:"Blue",extra:"Fed by the dialogue tracks' second output."},
+ sst_fx:{fmt:"Stereo",outs:["Stereo Print Master","Stereo M&E Stem"],col:"Orange",extra:"Fed by FX + Ambience tracks' second output."},
+ sst_mx:{fmt:"Stereo",outs:["Stereo Print Master","Stereo M&E Stem"],col:"Purple",extra:"Fed by the music tracks' second output."},
+ sst_me:{fmt:"Stereo",outs:[],col:"Grey",extra:"Fed by the Stereo FX + Stereo MX stems. Output unassigned — deliverable only."}};
+function stemHow(id,label){const o=STEM[id];const s=[
+ `<b>Create:</b> Fairlight ▸ <b>Bus Format ▸ Add Bus</b> ▸ rename "<b>${label}</b>" ▸ Format: <b>${o.fmt}</b> ▸ colour ${o.col}. (FlexBus has no "Sub" type — it's a stem because track/bus outputs feed it.)`];
+ if(o.outs.length)s.push(`<b>Route onward:</b> Mixer ▸ <b>Bus Outputs ▸ +</b> ▸ ${o.outs.join(", then + ▸ ")} (or Fairlight ▸ Bus Assign — a bus can feed several buses at once, up to 6 layers deep).`);
+ else s.push(`<b>Route onward:</b> nothing — leave the output empty.`);
+ s.push(o.extra);
+ s.push(`<b>Deliver:</b> on the Deliver page, render this bus as its own file (Audio tab ▸ add a track per bus). ${o.fmt==="5.1"?"6-channel WAV, 48 kHz/24-bit, SMPTE order L R C LFE Ls Rs.":"Stereo WAV, 48 kHz/24-bit."} Stems are deliverables for archival, QC and re-versioning.`);
+ return {steps:s,why:id.includes("me")?"M&E is built from the FX and MX stems — not from tracks — so it is guaranteed to equal FX + Music + Ambience with zero per-track bookkeeping. Change any FX level and both the mix and the M&E follow automatically. M&E is usually a mandatory deliverable for foreign-language dubbing.":"A stem is a submix of one category. Stems give you category-level processing and automation, are deliverables in their own right, and are what feed the print masters — the classic film/TV DX/FX/MX structure."};}
+function mainHow(id,label){if(id==="pm_51")return{steps:[
+ `<b>Create:</b> Fairlight ▸ <b>Bus Format ▸ Add Bus</b> ▸ "<b>5.1 Print Master</b>" ▸ Format: <b>5.1</b>. Fed by the DX/FX/MX stems' Bus Outputs.`,
+ `<b>Monitor it:</b> in the monitoring panel (top-left of the Fairlight page) set the Control Room source to this bus. Configure speakers in Preferences ▸ Video and Audio I/O (5.1 speaker setup).`,
+ `<b>Loudness meter:</b> the meters in the monitoring panel measure the monitored bus — click the meter's <b>options menu</b> to pick your standard (−24 ATSC, −23 R128, etc.). Colour coding: blue = in spec, yellow = tolerance, red = over. Switch to <b>dialog-gated</b> when checking the streaming target. The timeline can also show a live <b>loudness graph</b> on the main bus, and right-click any clip ▸ Analyze Audio Level for an offline read. Add Youlean/Insight as an insert if you want a second opinion.`,
+ `<b>Deliver:</b> 6-channel WAV 48 kHz/24-bit (SMPTE order L R C LFE Ls Rs), or Dolby Digital/AC-3 (Studio only). This is the surround master.`],
+ why:"The print master is the actual final mix — everything the audience hears sums here. Metering happens here because loudness compliance is measured on the delivered mix, not on stems."};
+ return{steps:[
+ `<b>Create:</b> Fairlight ▸ <b>Bus Format ▸ Add Bus</b> ▸ "<b>Stereo Print Master</b>" ▸ Format: <b>Stereo</b>. Fed by the three stereo stems' Bus Outputs.`,
+ `<b>Onward:</b> Bus Outputs ▸ + ▸ <b>Webmix Stereo</b> — the web preview is a processed copy of this bus.`,
+ `<b>Downmix flavour:</b> set Lt/Rt (matrix, surround-compatible — most broadcasters) or Lo/Ro per the delivery spec, and audition the 5.1→stereo fold-down against this discrete stereo mix in the monitoring panel.`,
+ `<b>Meter it separately</b> — stereo and 5.1 masters can read differently; both must pass their own target.`,
+ `<b>Deliver:</b> stereo WAV 48 kHz/24-bit — the main web/broadcast stereo deliverable.`],
+ why:"A discrete stereo mix (rather than an automatic fold-down) lets you fix balance issues that only appear in stereo, and it is the source for every stereo deliverable including the Webmix."};}
+function webHow(){return{steps:[
+ `<b>Create:</b> Fairlight ▸ <b>Bus Format ▸ Add Bus</b> ▸ "<b>Webmix Stereo</b>" ▸ Format: <b>Stereo</b>. Fed by the Stereo Print Master's Bus Output.`,
+ `<b>Insert processing:</b> Mixer ▸ Effects slot ▸ FairlightFX <b>Compressor</b> (~3:1, moderate attack/release) then <b>Limiter</b> (ceiling <b>−1.0 dBTP</b>). v21 tip: build these as one <b>Chain FX</b> preset so the whole Webmix chain is a single, reusable insert.`,
+ `<b>Target:</b> roughly <b>−14 LUFS</b> integrated — YouTube/Spotify-style platforms normalise around −14, so you control the sound of that loudness instead of letting the platform do it.`,
+ `<b>Deliver:</b> stereo AAC/MP4 or MP3 for quick online review and web/social posting.`],
+ why:"Web platforms loudness-normalise aggressively; a pre-compressed −14 LUFS version previews exactly how the mix will translate online, without touching the broadcast masters."};}
+const HOW={};
+Object.keys(TRK).forEach(id=>HOW[id]=trackHow(id));
+[["vca_dx","Dialogue VCA"],["vca_fx","FX VCA"],["vca_amb","Ambience VCA"],["vca_mx","Music VCA"]].forEach(([id,l])=>HOW[id]=vcaHow(id,l));
+[["rv_dx_m","DX Verb"],["rv_dx_s","DX Verb"],["rv_dx_5","DX Verb"],["rv_fx_m","FX Verb"],["rv_fx_s","FX Verb"],["rv_fx_5","FX Verb"],["rv_mx_s","MX Verb"],["rv_mx_5","MX Verb"]].forEach(([id,l])=>HOW[id]=rvHow(id,l));
+[["lfe_fx","FX LFE Bus"],["lfe_mx","Music LFE Bus"]].forEach(([id,l])=>HOW[id]=lfeHow(id,l));
+[["st_dx","DX Stem"],["st_fx","FX Stem"],["st_mx","MX Stem"],["st_me","M&E Stem"],["sst_dx","Stereo DX Stem"],["sst_fx","Stereo FX Stem"],["sst_mx","Stereo MX Stem"],["sst_me","Stereo M&E Stem"]].forEach(([id,l])=>HOW[id]=stemHow(id,l));
+HOW.pm_51=mainHow("pm_51");HOW.pm_st=mainHow("pm_st");HOW.webmix=webHow();
+
+/* ---------- Route (edge) documentation ---------- */
+const EDGEDOC={
+ audio:{title:"Track output → bus",
+  what:"The track's post-fader, post-pan signal is mixed into the destination bus. This is the primary path audio takes from a source track into a stem. Each track here feeds two buses at once — its 5.1 stem and its stereo stem (FlexBus allows up to 10 bus outputs per track).",
+  how:["Open the Mixer (Fairlight ▸ Mixer) and find the track's channel strip.","In <b>Bus Outputs</b>, click <b>+</b> and pick the destination bus. Click + again for additional destinations.","Bulk: select multiple tracks, hold <b>Alt/Option</b>, click + on any of them — all selected tracks get the assignment.","Matrix view: Fairlight ▸ <b>Bus Assign</b> — select a bus's <b>Out</b> button at the top, then click source tracks below (drag to multi-select)."]},
+ send:{title:"Bus Send → reverb bus (aux send)",
+  what:"A copy of the track's signal, with its own independent level, is tapped off to the reverb bus. The dry path to the stem is unaffected — sends are how many tracks share one reverb at different amounts.",
+  how:["Mixer ▸ track strip ▸ <b>Bus Sends ▸ +</b> ▸ choose the reverb bus.","Click the send's control to set level; right-click it to switch <b>pre/post-fader</b> (post is typical for reverb, so the wet amount follows the fader).","In the template, leave send levels at <b>−∞</b>: routed but silent, so every new project opens clean."]},
+ return:{title:"Reverb return → stem (bus-to-bus)",
+  what:"The reverb bus's wet output is routed into the stem, so reverb tails live inside the same deliverable as their dry source. Dialogue verb ends up in the DX stem — and therefore never contaminates the M&E.",
+  how:["Mixer ▸ the reverb bus's strip ▸ <b>Bus Outputs ▸ +</b> ▸ the stem.","Or Fairlight ▸ Bus Assign ▸ select the reverb bus's Out ▸ click the stem.","5.0 verbs return into L/R/C/Ls/Rs only — keep reverb out of the LFE channel."]},
+ lfe_send:{title:"LFE send → LFE bus",
+  what:"A separate low-frequency tap from the track feeds the dedicated LFE bus. This gives you deliberate, per-cue control of what reaches the subwoofer channel instead of relying on bass management.",
+  how:["Mixer ▸ track strip ▸ <b>Bus Sends ▸ +</b> ▸ the LFE bus (FX LFE Bus or Music LFE Bus).","Dial the send up per cue when something should hit the sub; keep at −∞ in the clean template.","The low-pass filtering happens once, on the LFE bus itself — not per track."]},
+ lfe_out:{title:"LFE bus → stem's LFE channel",
+  what:"The mono LFE bus is mixed into the 5.1 stem's LFE (.1) channel only, carrying low-passed sub-bass through the stem into the Print Master's LFE.",
+  how:["Keep a <b>low-pass filter (~120 Hz)</b> inserted on the LFE bus so only sub-bass passes.","Mixer ▸ LFE bus strip ▸ <b>Bus Outputs ▸ +</b> ▸ the 5.1 stem.","Open the LFE bus's output <b>surround panner</b> and steer the signal 100% to the <b>LFE channel</b> — zero contribution to the main channels."]},
+ control:{title:"VCA assignment (control only — no audio)",
+  what:"No signal flows on this line. The VCA master trims the fader of every member track (and follows mute/solo), so one fader rides the whole section while each track keeps its own balance, automation and routing.",
+  how:["Fairlight ▸ <b>VCA Assign</b> ▸ select the VCA group ▸ tick the member track. Up to 16 groups are supported.","Per-track alternative: Mixer ▸ the track strip's <b>Group</b> dropdown ▸ pick the VCA.","VCA masters live to the right of the buses in the Mixer."]},
+ busme:{title:"Stem → M&E (bus-to-bus)",
+  what:"The FX or MX stem is summed a second time into the M&E bus. Because M&E is built from stems — not tracks — it always exactly equals FX + Music + Ambience with dialogue removed. Change any effects level and the M&E updates automatically.",
+  how:["Fairlight ▸ <b>Bus Assign</b> ▸ select the stem's <b>Out</b> ▸ click the M&E stem (the stem now feeds both the Print Master and M&E simultaneously).","Or Mixer ▸ stem strip ▸ Bus Outputs ▸ + ▸ M&E Stem.","Leave the M&E bus's own output <b>unassigned</b> — it is a deliverable, not part of the monitored mix."]},
+ busmain:{title:"Bus → master chain (bus-to-bus)",
+  what:"Bus-to-bus summing into a final mix bus. FlexBus allows chains up to six layers deep; this template uses two layers (stems → masters) plus the Webmix tap off the Stereo Print Master.",
+  how:["Fairlight ▸ <b>Bus Assign</b> ▸ select the source bus's <b>Out</b> ▸ click the destination bus.","Or Mixer ▸ source bus strip ▸ <b>Bus Outputs ▸ +</b> ▸ destination.","For Stereo Print Master → Webmix: identical operation — the Webmix then applies its own compressor/limiter to that copy."]}
+};
+function edgeDocKey(e){if(e.k==="lfe")return N[e.f].cat.startsWith("track")?"lfe_send":"lfe_out";return e.k;}
+
+/* ---------- Hover glossary (dotted underline = hover for meaning) ---------- */
+const GLOSS={
+ "M&E":"Music and Effects — the full mix minus dialogue, delivered so foreign broadcasters can dub their own language",
+ "PFX":"Production effects — non-speech sounds caught by the dialogue microphones on location",
+ "VO":"Voice-over — narration recorded in a booth",
+ "DX":"Dialogue — spoken voice",
+ "FX":"Effects — sound effects",
+ "MX":"Music",
+ "VCA":"Voltage Controlled Amplifier (historic desk term) — a fader that remote-controls other faders; no audio passes through it",
+ "LFE":"Low Frequency Effects — the .1 subwoofer channel",
+ "LUFS":"Loudness Units relative to Full Scale — the standard measure of perceived loudness; more negative = quieter",
+ "LKFS":"Same unit as LUFS — the US name",
+ "LRA":"Loudness Range — how much the loudness varies across the programme",
+ "dBTP":"Decibels True Peak — the real maximum level after conversion to analogue; delivery specs set a ceiling",
+ "EBU R128":"European broadcast loudness standard: −23 LUFS",
+ "ATSC":"US broadcast standards body; A/85 is its −24 LKFS loudness rule",
+ "CALM":"US law (Commercial Advertisement Loudness Mitigation) enforcing the −24 LKFS broadcast rule",
+ "Lt/Rt":"Left-total/Right-total — stereo that encodes surround info, decodable back to surround",
+ "Lo/Ro":"Left-only/Right-only — a plain stereo downmix",
+ "EQ":"Equaliser — boosts or cuts chosen frequency ranges",
+ "5.1":"Six channels: Left, Right, Centre, LFE (sub), Left surround, Right surround",
+ "5.0":"5.1 without the subwoofer channel — reverb stays out of the sub",
+ "SMPTE":"Standards body — SMPTE channel order is L R C LFE Ls Rs",
+ "WAV":"Uncompressed professional audio file",
+ "AAC":"Compressed audio format used for web video",
+ "Ls":"Left surround — rear-left speaker",
+ "Rs":"Right surround — rear-right speaker",
+ "dialog-gated":"Loudness measured only while speech is present — how Netflix-style services measure",
+ "bass management":"The playback system automatically re-routing low frequencies to the subwoofer",
+ "de-esser":"A processor that tames harsh S sounds in a voice",
+ "true peak":"The real maximum level after digital-to-analogue conversion",
+ "post-fader":"The send taps the signal after the fader, so the echo follows the fader down",
+ "stem":"A bus used as a category submix (all dialogue, all effects…); also exported as its own file",
+ "stems":"Buses used as category submixes; also exported as their own files"
+};
+const GRE=new RegExp("\\b("+Object.keys(GLOSS).sort((a,b)=>b.length-a.length)
+  .map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")\\b","g");
+function gloss(s){return s.replace(GRE,m=>`<abbr title="${GLOSS[m]}">${m}</abbr>`);}
+
+/* ---------- Plain-English explanations per element type ---------- */
+const PLAIN={
+ track_dx:"A track is a lane in the timeline where you drop audio clips — this lane is for spoken voice. Everything placed here flows wherever the lane's output points: into the dialogue submix (DX Stem).",
+ track_fx:"A track is a lane in the timeline for audio clips — this one holds sound effects (doors, cars, whooshes). It flows into the effects submix (FX Stem).",
+ track_amb:"A lane for background atmosphere (room tone, wind, traffic). It flows into the effects submix, because backgrounds count as effects for delivery purposes.",
+ track_mux:"A lane for music. It flows into the music submix (MX Stem).",
+ vca:"A remote-control volume knob: pull it down and every member track turns down together, keeping their relative balance. No sound travels through it — it just moves other faders.",
+ reverb:"A shared echo machine. Tracks tip a little of their sound in (a 'send'); it comes out wet and echoey and is added back into the submix (the 'return'). One reverb serves many tracks, each at its own amount.",
+ lfe:"A collector for deep bass. Tracks tip low rumble in here, a filter keeps only the sub-bass, and the result feeds the subwoofer (.1) channel of the mix — so YOU decide what shakes the room.",
+ stem_dx:"A stem is a submix: ALL the talking gathered in one place with one master fader. It's also exported as its own file, so the mix can be taken apart and re-versioned later.",
+ stem_fx:"A stem is a submix: all effects and backgrounds gathered in one place with one master fader — and exported as its own file for re-versioning.",
+ stem_mx:"A stem is a submix: all the music in one place with one master fader — and exported as its own file.",
+ stem_me:"The whole mix minus the talking. Foreign broadcasters replace the dialogue with their own language, so they need everything else ready-made in one file. It fills itself automatically from the FX and MX stems.",
+ main:"The finished mix — every stem summed together. This is what you listen to while mixing, what the loudness meters judge, and what gets exported for delivery.",
+ web:"A louder, squashed copy of the stereo mix made for the internet, where platforms normalise everything to about −14 LUFS anyway — better to control that sound yourself."};
+
+/* ---------- Plain-English explanations per route type ---------- */
+const EPLAIN={
+ audio:"In plain English: the sound from this lane ends up inside that group mix.",
+ send:"In plain English: a copy of the sound is siphoned off to the echo machine; the original keeps flowing to its submix unaffected.",
+ return:"In plain English: the echo comes back and joins the group mix — so the echo of dialogue always lives with the dialogue.",
+ lfe_send:"In plain English: some of this track's deep bass is siphoned off to the bass collector.",
+ lfe_out:"In plain English: the collected, filtered bass is poured into the subwoofer channel of the group mix.",
+ control:"In plain English: no sound travels on this line — it's a volume remote-control link. Moving the VCA fader moves this track's fader.",
+ busme:"In plain English: this group is also copied into the 'no dialogue' version of the mix, automatically.",
+ busmain:"In plain English: the group mix is poured into the final mix."};
+
+const N={},pos={};DATA.nodes.forEach(n=>{N[n.id]=n;pos[n.id]=n;});
+const CW=DATA.cw,CH=DATA.ch;
+const KIND={audio:{c:"#5b6b7d",l:""},send:{c:"#1ab4b4",l:"send"},return:{c:"#1ab4b4",l:"return"},
+ lfe:{c:"#c77dff",l:"LFE"},control:{c:"#e05a4d",l:"VCA"},busme:{c:"#7a94a3",l:"M&E"},busmain:{c:"#d8b74a",l:""}};
+// adjacency
+const fwd={},bwd={};DATA.nodes.forEach(n=>{fwd[n.id]=[];bwd[n.id]=[];});
+DATA.edges.forEach((e,i)=>{e.i=i;fwd[e.f].push(e);bwd[e.t].push(e);});
+
+const svg=document.getElementById("svg");
+const gE=document.getElementById("edges"),gN=document.getElementById("nodes");
+const NS="http://www.w3.org/2000/svg";
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+
+// edges (visible path + invisible click target)
+const edgeEls=[];
+DATA.edges.forEach(e=>{
+  const s=pos[e.f],d=pos[e.t];
+  const x1=s.x+CW,y1=s.y+CH/2,x2=d.x,y2=d.y+CH/2;
+  const dx=Math.max(40,Math.abs(x2-x1)*0.4);
+  const path=`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`;
+  const p=el("path",{d:path,class:"edge",stroke:KIND[e.k].c,"stroke-width":1.6,
+     opacity:0.55,"marker-end":"url(#arw)"});
+  if(e.k==="control")p.setAttribute("stroke-dasharray","7 5");
+  gE.appendChild(p);edgeEls.push(p);
+  const hit=el("path",{d:path,class:"ehit"});
+  hit.addEventListener("click",ev=>{ev.stopPropagation();selectEdge(e.i);});
+  gE.appendChild(hit);
+  if(KIND[e.k].l){const mx=(x1+x2)/2,my=(y1+y2)/2;
+    const t=el("text",{x:mx,y:my-3,class:"elabel","text-anchor":"middle"});t.textContent=KIND[e.k].l;
+    gE.appendChild(t);e._lab=t;}
+});
+// arrow marker
+const defs=el("defs",{});
+const mk=el("marker",{id:"arw",markerWidth:8,markerHeight:8,refX:7,refY:3,orient:"auto",markerUnits:"strokeWidth"});
+mk.appendChild(el("path",{d:"M0,0 L7,3 L0,6 Z",fill:"#7d8b9c"}));
+defs.appendChild(mk);svg.insertBefore(defs,gE);
+
+// nodes
+const nodeEls={};
+DATA.nodes.forEach(n=>{
+  const g=el("g",{class:"node",style:"cursor:pointer"});g.dataset.id=n.id;
+  const r=el("rect",{x:n.x,y:n.y,width:CW,height:CH,rx:11,fill:n.color,
+     stroke:"rgba(255,255,255,.18)","stroke-width":1});
+  const t1=el("text",{x:n.x+14,y:n.y+30});t1.textContent=n.label;
+  const t2=el("text",{x:n.x+14,y:n.y+50,class:"fmt"});t2.textContent=n.sub;
+  g.appendChild(r);g.appendChild(t1);g.appendChild(t2);
+  g.addEventListener("click",ev=>{ev.stopPropagation();select(n.id);});
+  gN.appendChild(g);nodeEls[n.id]=g;
+});
+
+// on-canvas annotations (pan/zoom with the map, like the PDF)
+const gA=el("g",{});svg.appendChild(gA);
+// column section headers
+[[60,"VCAs (CONTROL)"],[480,"SOURCE TRACKS"],[840,"REVERBS / LFE"],[1240,"5.1 STEMS"],
+ [1600,"STEREO STEMS"],[1980,"PRINT MASTERS"],[2340,"WEB"]].forEach(([x,t])=>{
+  const s=el("text",{x:x+CW/2,y:28,class:"sechead","text-anchor":"middle"});s.textContent=t;gA.appendChild(s);});
+// loudness meter note above the print masters
+[["◉ Loudness meter inserted",440],["on both Print Masters",458]].forEach(([t,y])=>{
+  const s=el("text",{x:1980+CW/2,y:y,class:"mapnote","text-anchor":"middle"});s.textContent=t;gA.appendChild(s);});
+// delivery targets box (bottom-left, under the VCA column)
+(function(){
+  const bx=40,by=820;
+  gA.appendChild(el("rect",{x:bx,y:by,width:420,height:252,rx:10,fill:"#171c26",stroke:"#39424f"}));
+  const hd=el("text",{x:bx+16,y:by+28,class:"dt-h"});hd.textContent="DELIVERY TARGETS — integrated / true peak / gating";gA.appendChild(hd);
+  const rows=[["US broadcast — ATSC A/85 · CALM Act","−24 LKFS / −2 dBTP / program"],
+   ["EU broadcast — EBU R128","−23 LUFS / −1 dBTP / program"],
+   ["Streaming — Netflix-style spec","−27 LKFS / −2 dBTP / DIALOG-GATED"],
+   ["Web / social — YouTube · Spotify norm","−14 to −16 LUFS / −1 dBTP (Webmix bus)"]];
+  rows.forEach(([l,v],i)=>{
+    const y=by+56+i*44;
+    const tl=el("text",{x:bx+16,y:y,class:"dt-l"});tl.textContent=l;gA.appendChild(tl);
+    const tv=el("text",{x:bx+16,y:y+18,class:"dt-v"});tv.textContent=v;gA.appendChild(tv);});
+  const ft=el("text",{x:bx+16,y:by+238,class:"mapnote"});ft.textContent="No single master fits all — details in the sidebar.";gA.appendChild(ft);
+})();
+
+function reach(start,adj){const seen=new Set(),q=[start];
+  while(q.length){const c=q.shift();for(const e of adj[c]){const nx=adj===fwd?e.t:e.f;
+    if(!seen.has(nx)){seen.add(nx);q.push(nx);}}}return seen;}
+
+let current=null;
+function select(id){
+  current=id;
+  const down=reach(id,fwd),up=reach(id,bwd);
+  const active=new Set([id,...down,...up]);
+  DATA.nodes.forEach(n=>{
+    const g=nodeEls[n.id],on=active.has(n.id);
+    g.classList.toggle("dim",!on);
+    g.querySelector("rect").setAttribute("stroke-width",n.id===id?3:1);
+    g.querySelector("rect").setAttribute("stroke",n.id===id?"#fff":"rgba(255,255,255,.18)");
+  });
+  DATA.edges.forEach((e,i)=>{
+    const onDown=(e.f===id||down.has(e.f))&&(down.has(e.t)||e.t===id);
+    const onUp=(e.t===id||up.has(e.t))&&(up.has(e.f)||e.f===id);
+    const on=onDown||onUp;
+    edgeEls[i].style.opacity=on?0.95:0.05;
+    edgeEls[i].setAttribute("stroke-width",on?2.6:1.2);
+    if(e._lab)e._lab.style.opacity=on?1:0.05;
+  });
+  renderPanel(id,down,up);
+}
+function selectEdge(i){
+  current=null;
+  const e=DATA.edges[i];
+  const keep=new Set([e.f,e.t]);
+  DATA.nodes.forEach(n=>{
+    const g=nodeEls[n.id];
+    g.classList.toggle("dim",!keep.has(n.id));
+    g.querySelector("rect").setAttribute("stroke-width",keep.has(n.id)?3:1);
+    g.querySelector("rect").setAttribute("stroke",keep.has(n.id)?"#fff":"rgba(255,255,255,.18)");
+  });
+  DATA.edges.forEach((e2,j)=>{
+    const on=j===i;
+    edgeEls[j].style.opacity=on?1:0.05;
+    edgeEls[j].setAttribute("stroke-width",on?3.2:1.2);
+    if(e2._lab)e2._lab.style.opacity=on?1:0.05;
+  });
+  renderEdgePanel(e);
+}
+function clearSel(){current=null;
+  DATA.nodes.forEach(n=>{const g=nodeEls[n.id];g.classList.remove("dim");
+    g.querySelector("rect").setAttribute("stroke-width",1);
+    g.querySelector("rect").setAttribute("stroke","rgba(255,255,255,.18)");});
+  edgeEls.forEach((p,i)=>{p.style.opacity=0.55;p.setAttribute("stroke-width",1.6);
+    if(DATA.edges[i]._lab)DATA.edges[i]._lab.style.opacity=1;});
+  document.getElementById("panel").innerHTML=
+    '<div class="hint">Nothing selected.<br><br>Click a <b>node</b> for its role + build steps, or a <b>connection line</b> for how to create that route.</div>';
+}
+svg.addEventListener("click",clearSel);
+
+function chip(id,kind){const n=N[id];
+  return `<div class="chip" onclick="select('${id}')"><span class="dot" style="background:${n.color}"></span>`+
+    `<span>${n.label}</span>`+(kind?`<span class="via">${kind}</span>`:"")+`</div>`;}
+function howBlock(h,label){if(!h)return "";
+  return `<details class="howto" open><summary>${label||"How to build it (Resolve 21)"}</summary><ol>`+
+    h.steps.map(s=>`<li>${gloss(s)}</li>`).join("")+`</ol>`+
+    (h.why?`<div class="why"><b>Why it's built this way:</b> ${gloss(h.why)}</div>`:"")+`</details>`;}
+
+function renderPanel(id,down,up){
+  const n=N[id];
+  const outs=fwd[id],ins=bwd[id];
+  const controlledBy=ins.filter(e=>e.k==="control").map(e=>e.f);
+  const audioIn=ins.filter(e=>e.k!=="control");
+  const audioOut=outs.filter(e=>e.k!=="control");
+  const controls=outs.filter(e=>e.k==="control").map(e=>e.t);
+  const downAudio=[...down].filter(x=>x!==id);
+  let h=`<div class="sel-name">${n.label}</div>`+
+        `<div class="sel-fmt">${n.sub}</div>`+
+        `<div class="sel-desc">${gloss(n.desc)}</div>`+
+        (PLAIN[n.cat]?`<div class="plain"><b>In plain English:</b> ${gloss(PLAIN[n.cat])}</div>`:"")+
+        howBlock(HOW[id]);
+  if(controls.length){h+=`<div class="grp"><h3>Controls (VCA) <span class="count">${controls.length}</span></h3>`+
+     controls.map(x=>chip(x,"level")).join("")+`</div>`;}
+  if(controlledBy.length){h+=`<div class="grp"><h3>Controlled by</h3>`+
+     controlledBy.map(x=>chip(x,"VCA")).join("")+`</div>`;}
+  h+=`<div class="grp"><h3>Fed by (direct)</h3>`+
+     (audioIn.length?audioIn.map(e=>chip(e.f,e.k)).join(""):'<div class="empty">source / nothing upstream</div>')+`</div>`;
+  h+=`<div class="grp"><h3>Feeds directly into</h3>`+
+     (audioOut.length?audioOut.map(e=>chip(e.t,e.k)).join(""):'<div class="empty">endpoint (deliver / monitor)</div>')+`</div>`;
+  h+=`<div class="grp"><h3>Signal reaches downstream <span class="count">${downAudio.length}</span></h3>`+
+     (downAudio.length?downAudio.map(x=>chip(x,"")).join(""):'<div class="empty">— terminal node —</div>')+`</div>`;
+  document.getElementById("panel").innerHTML=h;
+}
+function renderEdgePanel(e){
+  const s=N[e.f],d=N[e.t];
+  const key=edgeDocKey(e),doc=EDGEDOC[key];
+  let h=`<div class="sel-name" style="font-size:15px">${s.label} <span style="color:var(--dim)">→</span> ${d.label}</div>`+
+        `<span class="sel-fmt" style="background:${KIND[e.k].c}33;border:1px solid ${KIND[e.k].c}66">${doc.title}</span>`+
+        (EPLAIN[key]?`<div class="plain">${gloss(EPLAIN[key])}</div>`:"")+
+        `<div class="sel-desc">${gloss(doc.what)}</div>`+
+        `<details class="howto" open><summary>How to create this route (Resolve 21)</summary><ol>`+
+        doc.how.map(x=>`<li>${gloss(x)}</li>`).join("")+`</ol></details>`+
+        `<div class="grp"><h3>Endpoints</h3>`+chip(e.f,"from")+chip(e.t,"to")+`</div>`;
+  document.getElementById("panel").innerHTML=h;
+}
+
+// legend
+const LG=[["#3b7dd8","<b2>DX</b2> — Dialogue (spoken voice, incl. VO narration)"],
+ ["#e08a3c","<b2>FX</b2> — Sound effects"],
+ ["#54b054","<b2>BG</b2> — Ambience / backgrounds"],
+ ["#a86fd0","<b2>MX</b2> — Music"],
+ ["#e05a4d","<b2>VCA</b2> — group volume control (no audio flows)"],
+ ["#1ab4b4","Reverb aux — shared echo, fed by sends"],
+ ["#c77dff","<b2>LFE</b2> — subwoofer (.1) bass feed"],
+ ["#7a94a3","Stem / <b2>M&amp;E</b2> — submix / mix-minus-dialogue"],
+ ["#d8b74a","Print Master — the finished mix"],
+ ["#95a3a8","Webmix — compressed web preview"]];
+const LK=[["#5b6b7d","solid","audio path (track/bus output)"],["#e05a4d","dashed","VCA control — no audio"],
+ ["#1ab4b4","solid","reverb send / return"],["#c77dff","solid","LFE (sub-bass)"],
+ ["#7a94a3","solid","to M&E"],["#d8b74a","solid","to Print Master"]];
+document.getElementById("legend").innerHTML="<b>Boxes — click for build steps</b>"+
+ LG.map(([c,l])=>`<div class="lg"><span class="dot" style="background:${c}"></span><span>${l.replace(/<b2>/g,'<span style="font-weight:700;color:#fff">').replace(/<\/b2>/g,'</span>')}</span></div>`).join("")+
+ "<b style='margin-top:8px'>Lines — click for how-to</b>"+
+ LK.map(([c,st,l])=>`<div class="lg"><span style="display:inline-block;width:20px;height:0;border-top:2.5px ${st} ${c};flex:none"></span><span>${l}</span></div>`).join("");
+
+// pan + zoom via viewBox
+let vb={x:0,y:0,w:DATA.w,h:DATA.h};
+const stage=document.getElementById("stage");
+function applyVB(){svg.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);}
+function fit(){const r=stage.getBoundingClientRect();const ar=r.width/r.height;
+  const dar=DATA.w/DATA.h;let w,h;
+  if(dar>ar){w=DATA.w;h=DATA.w/ar;}else{h=DATA.h;w=DATA.h*ar;}
+  vb={x:(DATA.w-w)/2,y:(DATA.h-h)/2,w,h};applyVB();}
+window.addEventListener("resize",fit);fit();
+let drag=null;
+stage.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};stage.classList.add("grab");});
+window.addEventListener("pointerup",()=>{drag=null;stage.classList.remove("grab");});
+window.addEventListener("pointermove",e=>{if(!drag)return;
+  const r=stage.getBoundingClientRect();const sx=vb.w/r.width,sy=vb.h/r.height;
+  vb.x=drag.vx-(e.clientX-drag.x)*sx;vb.y=drag.vy-(e.clientY-drag.y)*sy;applyVB();});
+stage.addEventListener("wheel",e=>{e.preventDefault();
+  const r=stage.getBoundingClientRect();const mx=vb.x+(e.clientX-r.left)/r.width*vb.w;
+  const my=vb.y+(e.clientY-r.top)/r.height*vb.h;
+  const f=e.deltaY>0?1.12:0.89;vb.w*=f;vb.h*=f;
+  vb.x=mx-(e.clientX-r.left)/r.width*vb.w;vb.y=my-(e.clientY-r.top)/r.height*vb.h;applyVB();},{passive:false});
+function zoom(f){const cx=vb.x+vb.w/2,cy=vb.y+vb.h/2;vb.w*=f;vb.h*=f;vb.x=cx-vb.w/2;vb.y=cy-vb.h/2;applyVB();}
+document.getElementById("zin").onclick=()=>zoom(0.8);
+document.getElementById("zout").onclick=()=>zoom(1.25);
+document.getElementById("zreset").onclick=fit;
+// deep link: ?select=<node id> opens the map with that element selected (used by guide.html)
+const dq=new URLSearchParams(location.search).get("select");
+if(dq&&N[dq])select(dq);
+</script></body></html>
