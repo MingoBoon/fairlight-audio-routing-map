@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary — Fairlight 5.1 Toolkit</title>
+<meta name="description" content="Every audio-mixing acronym and term used in the Fairlight 5.1 Toolkit, explained for beginners. DX, M&E, LUFS, dBTP, VCA, LFE and more.">
+<style>
+:root{--bg:#0d0f13;--bg2:#12151b;--panel:#1a1e26;--panel2:#232936;--line:#2d3543;
+ --txt:#eef2f7;--dim:#94a1b2;--gold:#d8b74a;--teal:#1ab4b4;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);line-height:1.6;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+.btn{display:inline-block;padding:8px 18px;border-radius:22px;font-size:13.5px;font-weight:650;
+ border:1px solid var(--line);color:var(--txt);background:var(--panel);transition:.15s}
+.btn:hover{background:var(--panel2);text-decoration:none;transform:translateY(-1px)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#181405}
+.btn.gold:hover{background:#e7c85e}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+header{position:sticky;top:0;z-index:50;background:rgba(10,12,16,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(45,53,67,.6)}
+header .hwrap{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:14px 24px}
+.brand{font-weight:750;letter-spacing:.8px;font-size:15px}
+.brand span{color:var(--gold)}
+.brand a{color:var(--txt)}
+header nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+#hero{padding:78px 0 34px;text-align:center;
+ background:radial-gradient(900px 380px at 50% -80px,#243043 0%,rgba(18,21,27,0) 60%),var(--bg)}
+#hero .eyebrow{font-size:12px;letter-spacing:2.5px;color:var(--gold);font-weight:700;text-transform:uppercase}
+#hero h1{font-size:clamp(30px,5vw,46px);font-weight:250;letter-spacing:-1px;margin:14px 0 8px}
+#hero h1 b{font-weight:750}
+#hero p{max-width:600px;margin:10px auto 0;color:var(--dim);font-size:16px}
+main{padding:20px 0 90px}
+#glsearch{width:100%;padding:14px 18px;border-radius:12px;border:1px solid var(--line);
+ background:var(--panel);color:var(--txt);font-size:15px;margin:26px 0 6px;outline:none}
+#glsearch:focus{border-color:var(--teal)}
+.count{font-size:12px;color:var(--dim);margin-bottom:8px}
+.gl dt{color:var(--txt);font-weight:650;margin-top:16px;font-size:15px}
+.gl dd{margin:3px 0 0;color:var(--dim)}
+.gl .cat{margin:38px 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold);font-weight:750;
+ border-bottom:1px solid var(--line);padding-bottom:8px}
+.hidden{display:none}
+.callout{border-left:3px solid var(--teal);background:var(--panel);border-radius:8px;padding:12px 16px;margin:22px 0;color:var(--dim);font-size:14px}
+.callout b{color:var(--txt)}
+footer{border-top:1px solid var(--line);padding:32px 24px;text-align:center;font-size:12.5px;color:var(--dim)}
+</style></head>
+<body>
+
+<header><div class="hwrap">
+  <div class="brand"><a href="index.html">FAIRLIGHT 5.1 <span>TOOLKIT</span></a></div>
+  <nav>
+    <a class="btn" href="index.html">Home</a>
+    <a class="btn" href="guide.html">Build guide</a>
+    <a class="btn gold" href="map.html">Open the map ↗</a>
+  </nav>
+</div></header>
+
+<div id="hero">
+  <div class="wrap">
+    <div class="eyebrow">Reference · plain English</div>
+    <h1>The <b>glossary</b></h1>
+    <p>Every acronym and term used in the toolkit, explained for someone brand new to audio mixing. The same definitions appear as hover tooltips on the <a href="map.html">interactive map</a>.</p>
+  </div>
+</div>
+
+<main class="wrap">
+<input id="glsearch" type="search" placeholder="Type to filter… e.g. LUFS, stem, dBTP, M&E">
+<div class="count" id="glcount"></div>
+
+<dl class="gl" id="gllist">
+<div class="cat">The sections — what the letters mean</div>
+<dt>DX</dt><dd>Dialogue — all spoken voice.</dd>
+<dt>VO</dt><dd>Voice-Over — narration recorded in a booth, separate from filmed dialogue.</dd>
+<dt>FX / SFX</dt><dd>(Sound) Effects — doors, cars, whooshes, hits.</dd>
+<dt>PFX</dt><dd>Production Effects — non-speech sounds the dialogue microphones caught on location (footsteps, door slams). Kept with dialogue because they share its recording acoustics; usually excluded from the M&amp;E and replaced with library sounds in a dub.</dd>
+<dt>Futz</dt><dd>Voice deliberately degraded to sound like a phone, radio or TV speaker.</dd>
+<dt>Ambience / BG</dt><dd>Backgrounds — continuous atmosphere such as room tone, wind, traffic.</dd>
+<dt>MX</dt><dd>Music.</dd>
+<dt>M&amp;E</dt><dd>Music &amp; Effects — the entire mix <i>minus</i> dialogue. Foreign broadcasters replace the speech with their own language, so they need everything else ready-made in one file. Usually a mandatory deliverable.</dd>
+<div class="cat">Signal path</div>
+<dt>Track</dt><dd>A lane in the timeline that holds audio clips. Has its own volume fader, pan, EQ and effects. <a href="map.html?select=dx">See one on the map →</a></dd>
+<dt>Bus</dt><dd>A meeting point that sums several signals into one — think "group channel". Stems, reverbs, LFE collectors and masters are all buses; only their routing differs. In modern Resolve's FlexBus system, all buses are created identically and the role comes from routing.</dd>
+<dt>Stem</dt><dd>A bus used as a category submix (all dialogue, all FX…). Controlled by one master fader and also exported as its own file. <a href="map.html?select=st_dx">See the DX Stem →</a></dd>
+<dt>Print Master</dt><dd>The final mix bus — everything summed. What you monitor and deliver. ("Print" is old film language for recording the final result.) <a href="map.html?select=pm_51">See it on the map →</a></dd>
+<dt>Send (Bus Send)</dt><dd>A tap that siphons an adjustable <i>copy</i> of a signal to another bus (e.g. to a reverb). The original keeps flowing unaffected.</dd>
+<dt>Return</dt><dd>The processed (wet) signal coming back from a reverb bus into a stem.</dd>
+<dt>Aux (Auxiliary)</dt><dd>The traditional name for a bus you reach via sends, like the toolkit's reverb buses.</dd>
+<dt>Insert</dt><dd>A processor placed directly in a channel's path, affecting everything through it (unlike a send, which is a parallel copy).</dd>
+<dt>Fader</dt><dd>The volume slider of a track or bus.</dd>
+<dt>−∞ (minus infinity)</dt><dd>A fader or send pulled all the way down: silence. The template's sends are pre-wired at −∞ so projects open clean.</dd>
+<dt>VCA</dt><dd>Voltage Controlled Amplifier (a historic mixing-desk term). In Resolve: a fader that remote-controls other faders (level, mute, solo). No audio passes through it; members keep their own routing. Up to 16 groups via Fairlight ▸ VCA Assign. <a href="map.html?select=vca_dx">See one on the map →</a></dd>
+<dt>Pan / Panner</dt><dd>Positions a sound between speakers. The surround panner places it anywhere in the 5.1 field.</dd>
+<dt>Pre / post-fader</dt><dd>Whether a send taps the signal before or after the fader. Post (the default) means the echo follows the fader down.</dd>
+<dt>Automation</dt><dd>Recorded fader/knob moves that replay with the timeline.</dd>
+<dt>Patching</dt><dd>Connecting signals to physical inputs/outputs (microphones in, speakers out). Fairlight ▸ Patch Input/Output.</dd>
+<div class="cat">Channels &amp; formats</div>
+<dt>Mono / Stereo</dt><dd>One channel / two channels (Left + Right).</dd>
+<dt>5.1</dt><dd>Six channels: Left, Right, Centre, LFE (subwoofer), Left surround, Right surround. The "5" are full-range speakers; the ".1" is the limited-range bass channel.</dd>
+<dt>5.0</dt><dd>5.1 without the LFE channel — used for the surround reverbs, since echo doesn't belong in the subwoofer.</dd>
+<dt>LFE</dt><dd>Low Frequency Effects — the ".1": a dedicated deep-bass channel for the subwoofer. <a href="map.html?select=lfe_fx">See the FX LFE bus →</a></dd>
+<dt>Ls / Rs</dt><dd>Left surround / Right surround — the rear speakers.</dd>
+<dt>SMPTE order</dt><dd>The standard channel order in delivered files: <b>L R C LFE Ls Rs</b>. (Film order differs: L C R Ls Rs LFE. Deliver SMPTE unless the spec says otherwise.)</dd>
+<dt>Downmix / fold-down</dt><dd>Automatically converting a surround mix to stereo.</dd>
+<dt>Lt/Rt vs Lo/Ro</dt><dd>Two stereo flavours. Lt/Rt ("total") encodes the surround information so a decoder can rebuild it; Lo/Ro ("only") is a plain stereo sum. Your broadcaster's delivery spec says which one they want.</dd>
+<dt>Bass management</dt><dd>A playback system automatically re-routing low frequencies to the subwoofer. The template's LFE buses exist so <i>you</i> control the sub deliberately instead.</dd>
+<dt>48 kHz / 24-bit</dt><dd>Professional sample rate and bit depth for film/TV audio files.</dd>
+<div class="cat">Loudness &amp; delivery</div>
+<dt>LUFS / LKFS</dt><dd>Loudness Units relative to Full Scale — the standard measure of perceived loudness. LKFS is the identical US name. More negative = quieter (−24 is quieter than −14).</dd>
+<dt>Integrated</dt><dd>The single loudness number for the whole programme; what delivery specs are judged on.</dd>
+<dt>Short-term / Momentary</dt><dd>Loudness over the last 3 seconds / 400 milliseconds — for watching in the moment while you mix.</dd>
+<dt>LRA (Loudness Range)</dt><dd>How much the loudness varies across the programme. Broadcast tolerates less range than cinema.</dd>
+<dt>dBTP / true peak</dt><dd>Decibels True Peak — the real maximum level after digital-to-analogue conversion. Specs cap it (e.g. −2 dBTP) to prevent distortion on consumer equipment.</dd>
+<dt>Dialog-gated</dt><dd>Loudness measured only while speech is present — how Netflix-style streaming services measure. A narration-heavy programme reads very differently this way, which is why one master can't satisfy both broadcast and streaming.</dd>
+<dt>EBU R128</dt><dd>European broadcast loudness standard: −23 LUFS integrated, −1 dBTP.</dd>
+<dt>ATSC A/85 · CALM Act</dt><dd>US broadcast loudness standard (−24 LKFS, −2 dBTP) and the US law that enforces it.</dd>
+<dt>Deliverable</dt><dd>Any file the client or broadcaster contractually requires: masters, stems, M&amp;E, etc.</dd>
+<dt>WAV / AAC / MP3</dt><dd>WAV is the uncompressed professional file format. AAC/MP3 are compressed web formats (used only for the Webmix here).</dd>
+<dt>.drp</dt><dd>A DaVinci Resolve Project export file — how you save the template for reuse (File ▸ Export Project).</dd>
+<div class="cat">Processing</div>
+<dt>EQ (Equaliser)</dt><dd>Boosts or cuts chosen frequency ranges — tone control.</dd>
+<dt>Compressor</dt><dd>Automatically turns down loud moments, evening out the level. The ratio (e.g. 3:1) sets how firmly.</dd>
+<dt>Limiter</dt><dd>A brick-wall compressor that stops the signal exceeding a ceiling — the last safety net before delivery.</dd>
+<dt>De-esser</dt><dd>Tames harsh "S" sounds in a voice.</dd>
+<dt>Reverb</dt><dd>Simulates a space's echo — room, plate, hall. <a href="map.html?select=rv_dx_s">See a reverb bus →</a></dd>
+<dt>Low-pass filter</dt><dd>Lets frequencies below a cutoff through and removes the rest. ~120 Hz on the LFE buses keeps only sub-bass.</dd>
+<dt>Chain FX</dt><dd>Resolve 21 feature: several plugins saved together as one reusable preset (up to 6 per chain).</dd>
+<dt>FairlightFX</dt><dd>Resolve's built-in suite of audio plugins (Reverb, Compressor, Limiter, EQ, etc.).</dd>
+</dl>
+
+<div class="callout"><b>Want these in context?</b> Every term appears as a hover tooltip on the <a href="map.html">interactive map</a>, and the <a href="guide.html">build guide</a> walks through where each concept is used. Obsidian users: the same glossary ships as <a href="Fairlight%205.1%20-%20Glossary.md">Markdown</a>.</div>
+</main>
+
+<footer>
+Fairlight 5.1 Toolkit · MIT License · Verified against DaVinci Resolve Studio 21.0.2 (July 2026)<br>
+Unofficial community resource. DaVinci Resolve and Fairlight are trademarks of Blackmagic Design Pty. Ltd. — not affiliated with or endorsed by Blackmagic Design.
+</footer>
+
+<script>
+const gs=document.getElementById('glsearch'),gl=document.getElementById('gllist'),ct=document.getElementById('glcount');
+const dts=[...gl.querySelectorAll('dt')];
+function upd(){
+  const q=gs.value.trim().toLowerCase();let n=0;
+  dts.forEach(dt=>{const dd=dt.nextElementSibling;
+    const hit=!q||dt.textContent.toLowerCase().includes(q)||dd.textContent.toLowerCase().includes(q);
+    dt.classList.toggle('hidden',!hit);dd.classList.toggle('hidden',!hit);if(hit)n++;});
+  gl.querySelectorAll('.cat').forEach(c=>{let el=c.nextElementSibling,any=false;
+    while(el&&!el.classList.contains('cat')){if(el.tagName==='DT'&&!el.classList.contains('hidden'))any=true;el=el.nextElementSibling;}
+    c.classList.toggle('hidden',!any);});
+  ct.textContent=n+' term'+(n===1?'':'s')+(q?' matching "'+gs.value+'"':' in the glossary');
+}
+gs.addEventListener('input',upd);upd();
+</script>
+</body></html>

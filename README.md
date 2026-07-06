@@ -4,7 +4,7 @@ An interactive, single-file signal-flow map of a professional **5.1 film/TV mixi
 
 Verified against **DaVinci Resolve Studio 21.0.2** (FlexBus, July 2026).
 
-> Open `Fairlight 5.1 Routing - Interactive.html` in any browser. No install, no build step, no dependencies — everything is one self-contained file.
+> Open `map.html` in any browser. No install, no build step, no dependencies — everything is one self-contained file.
 
 ## What it does
 
@@ -33,8 +33,10 @@ Three interconnected pages, all self-contained static HTML (no build step, no de
 | Page | What it is |
 |------|-----------|
 | `index.html` | **Landing page** — hero, live map preview, feature overview, the full kit |
-| `Fairlight 5.1 Routing - Interactive.html` | **The interactive map** — supports deep links (`?select=st_dx` opens with that element selected) |
-| `guide.html` | **The build guide** — step-by-step instructions, 21-bus format table, interactive checklist with saved progress, filterable glossary; every element deep-links to the map |
+| `map.html` | **The interactive map** — supports deep links (`?select=st_dx` opens with that element selected) |
+| `guide.html` | **The build guide** — step-by-step instructions, interactive checklist with saved progress; every element deep-links to the map |
+| `spec.html` | **The build spec** — the full engineering reference: 21-bus format table, build order A–L, delivery matrix |
+| `glossary.html` | **The glossary** — every acronym and term, live-filterable, with deep links into the map |
 
 ## Companion documents
 
