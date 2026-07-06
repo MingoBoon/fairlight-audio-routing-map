@@ -81,9 +81,14 @@ abbr{cursor:help;text-decoration:underline dotted #5d6b7e;text-underline-offset:
 .edge{fill:none;transition:opacity .15s,stroke-width .15s}
 .sechead{font-size:15px;font-weight:700;fill:#93a1b5;letter-spacing:2px}
 .mapnote{font-size:12px;font-style:italic;fill:#8a95a5}
-.dt-h{font-size:13px;font-weight:700;fill:#e7ecf3;letter-spacing:.5px}
-.dt-l{font-size:12px;font-weight:600;fill:#cfd7e2}
-.dt-v{font-size:12px;fill:#8a95a5}
+#dtbox{position:absolute;right:14px;bottom:14px;background:rgba(20,24,32,.92);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.5;max-width:300px}
+#dtbox b{display:block;margin-bottom:5px;font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+#dtbox .dtr{display:flex;justify-content:space-between;gap:12px;padding:2.5px 0;border-top:1px solid rgba(57,66,79,.5)}
+#dtbox .dtr:first-of-type{border-top:none}
+#dtbox .dtr span:first-child{color:var(--txt);font-weight:600}
+#dtbox .dtr span:last-child{color:var(--dim);text-align:right;white-space:nowrap}
+#dtbox .dtnote{color:var(--dim);font-style:italic;margin-top:6px;font-size:10.5px}
 .ehit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer}
 .elabel{font-size:9px;fill:var(--dim);pointer-events:none}
 .dim{opacity:.12}
@@ -94,6 +99,13 @@ abbr{cursor:help;text-decoration:underline dotted #5d6b7e;text-underline-offset:
   <svg id="svg"><g id="edges"></g><g id="nodes"></g></svg>
   <div id="ctrl"><button id="zin">+</button><button id="zout">&minus;</button><button id="zreset" title="Reset">&#8634;</button></div>
   <div id="pagenav"><a href="index.html">⌂ Home</a><a class="gold" href="guide.html">📖 Build guide</a><a href="glossary.html">🔤 Glossary</a></div>
+  <div id="dtbox"><b>Delivery targets — integrated / peak / gating</b>
+    <div class="dtr"><span>US broadcast · A/85</span><span>−24 LKFS · −2 dBTP · program</span></div>
+    <div class="dtr"><span>EU broadcast · R128</span><span>−23 LUFS · −1 dBTP · program</span></div>
+    <div class="dtr"><span>Streaming · Netflix</span><span>−27 LKFS · −2 dBTP · dialog-gated</span></div>
+    <div class="dtr"><span>Web · Webmix bus</span><span>−14→−16 LUFS · −1 dBTP</span></div>
+    <div class="dtnote">No single master fits all — details in the sidebar.</div>
+  </div>
   <div id="legend"></div>
 </div>
 <div id="side">
@@ -512,21 +524,7 @@ const gA=el("g",{});svg.appendChild(gA);
 // loudness meter note above the print masters
 [["◉ Loudness meter inserted",440],["on both Print Masters",458]].forEach(([t,y])=>{
   const s=el("text",{x:1980+CW/2,y:y,class:"mapnote","text-anchor":"middle"});s.textContent=t;gA.appendChild(s);});
-// delivery targets box (bottom-left, under the VCA column)
-(function(){
-  const bx=40,by=820;
-  gA.appendChild(el("rect",{x:bx,y:by,width:420,height:252,rx:10,fill:"#171c26",stroke:"#39424f"}));
-  const hd=el("text",{x:bx+16,y:by+28,class:"dt-h"});hd.textContent="DELIVERY TARGETS — integrated / true peak / gating";gA.appendChild(hd);
-  const rows=[["US broadcast — ATSC A/85 · CALM Act","−24 LKFS / −2 dBTP / program"],
-   ["EU broadcast — EBU R128","−23 LUFS / −1 dBTP / program"],
-   ["Streaming — Netflix-style spec","−27 LKFS / −2 dBTP / DIALOG-GATED"],
-   ["Web / social — YouTube · Spotify norm","−14 to −16 LUFS / −1 dBTP (Webmix bus)"]];
-  rows.forEach(([l,v],i)=>{
-    const y=by+56+i*44;
-    const tl=el("text",{x:bx+16,y:y,class:"dt-l"});tl.textContent=l;gA.appendChild(tl);
-    const tv=el("text",{x:bx+16,y:y+18,class:"dt-v"});tv.textContent=v;gA.appendChild(tv);});
-  const ft=el("text",{x:bx+16,y:by+238,class:"mapnote"});ft.textContent="No single master fits all — details in the sidebar.";gA.appendChild(ft);
-})();
+// delivery targets box lives as a fixed overlay (bottom-right), like the legend — see #dtbox
 
 function reach(start,adj){const seen=new Set(),q=[start];
   while(q.length){const c=q.shift();for(const e of adj[c]){const nx=adj===fwd?e.t:e.f;
