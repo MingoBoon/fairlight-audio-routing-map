@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build Guide — Fairlight 5.1 Mixing Template (DaVinci Resolve 21)</title>
+<meta name="description" content="Step-by-step guide to building a professional 5.1 film/TV mixing template in DaVinci Resolve's Fairlight page. FlexBus, stems, M&E, VCAs, LFE, loudness delivery.">
+<style>
+:root{--bg:#101216;--bg2:#15181e;--panel:#1b1f27;--panel2:#232936;--line:#333c4a;
+ --txt:#e8edf4;--dim:#93a0b1;--gold:#d8b74a;--teal:#1ab4b4;--blue:#3b7dd8;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+/* top bar */
+#topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:18px;
+ padding:12px 24px;background:rgba(13,15,19,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+#topbar .brand{font-weight:700;letter-spacing:.6px;font-size:14px;color:var(--txt)}
+#topbar .brand span{color:var(--gold)}
+#topbar nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-block;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;
+ border:1px solid var(--line);color:var(--txt);background:var(--panel);cursor:pointer}
+.btn:hover{background:var(--panel2);text-decoration:none}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#181405}
+.btn.gold:hover{background:#e7c85e}
+/* layout */
+#wrap{display:flex;max-width:1200px;margin:0 auto;padding:0 20px;gap:36px}
+#sidenav{width:220px;flex:none;position:sticky;top:64px;align-self:flex-start;
+ max-height:calc(100vh - 80px);overflow-y:auto;padding:24px 0 40px;font-size:13px}
+#sidenav b{display:block;color:var(--dim);text-transform:uppercase;font-size:10.5px;letter-spacing:1px;margin:0 0 8px}
+#sidenav a{display:block;padding:6px 10px;border-radius:6px;color:var(--dim);border-left:2px solid transparent}
+#sidenav a:hover{color:var(--txt);background:var(--panel);text-decoration:none}
+#sidenav a.on{color:var(--gold);border-left-color:var(--gold)}
+main{flex:1;min-width:0;padding:28px 0 100px}
+h1{font-size:32px;font-weight:300;letter-spacing:-.3px;margin:10px 0 6px}
+h1 b{font-weight:750}
+h2{font-size:22px;font-weight:650;margin:56px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:26px 0 8px}
+p{color:var(--dim)}
+p b,li b{color:var(--txt)}
+.lead{font-size:16.5px;color:#b9c3d0}
+.tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#1f3524;color:#8fd49a;border:1px solid #2e5237;margin:4px 0 14px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+code{background:var(--panel2);padding:1px 6px;border-radius:5px;color:#dfe6ef}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;color:var(--dim)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
+th{color:var(--txt);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+td:first-child{color:var(--txt)}
+tr:hover td{background:rgba(255,255,255,.02)}
+ul,ol{color:var(--dim)}
+li{margin-bottom:7px}
+.callout{border-left:3px solid var(--gold);background:var(--panel);border-radius:8px;padding:12px 16px;margin:16px 0;color:var(--dim)}
+.callout.teal{border-left-color:var(--teal)}
+.callout b{color:var(--txt)}
+details.acc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0;margin:10px 0;overflow:hidden}
+details.acc summary{cursor:pointer;padding:13px 18px;font-weight:650;font-size:14.5px;list-style:none;display:flex;align-items:center;gap:10px}
+details.acc summary::before{content:"▸";color:var(--gold);transition:transform .15s}
+details.acc[open] summary::before{transform:rotate(90deg)}
+details.acc summary:hover{background:var(--panel2)}
+details.acc .inner{padding:2px 20px 16px;border-top:1px solid var(--line)}
+.maplink{font-size:12px;margin-left:auto;color:var(--teal);font-weight:500}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
+/* checklist */
+#progresswrap{position:sticky;top:56px;z-index:5;background:var(--bg);padding:10px 0 6px}
+#progressbar{height:8px;background:var(--panel2);border-radius:6px;overflow:hidden}
+#progressfill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .3s}
+#progresstxt{font-size:12px;color:var(--dim);margin-top:5px}
+.check{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);
+ border-radius:10px;padding:13px 16px;margin:8px 0;cursor:pointer}
+.check:hover{background:var(--panel2)}
+.check input{margin-top:4px;accent-color:var(--gold);width:16px;height:16px;flex:none;cursor:pointer}
+.check.done .ct{text-decoration:line-through;opacity:.55}
+.check .ct b{display:block;font-size:14px}
+.check .ct span{font-size:13px;color:var(--dim)}
+/* glossary */
+#glsearch{width:100%;padding:11px 16px;border-radius:10px;border:1px solid var(--line);
+ background:var(--panel);color:var(--txt);font-size:14px;margin:12px 0 4px;outline:none}
+#glsearch:focus{border-color:var(--teal)}
+.gl dt{color:var(--txt);font-weight:650;margin-top:14px}
+.gl dd{margin:2px 0 0;color:var(--dim)}
+.gl .cat{margin:26px 0 2px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);font-weight:700}
+.hidden{display:none}
+footer{border-top:1px solid var(--line);margin-top:70px;padding:26px 24px;text-align:center;font-size:12.5px;color:var(--dim)}
+@media(max-width:900px){#sidenav{display:none}}
+</style></head>
+<body>
+<div id="topbar">
+  <div class="brand">FAIRLIGHT 5.1 <span>TOOLKIT</span></div>
+  <nav>
+    <a class="btn" href="index.html">Home</a>
+    <a class="btn gold" href="Fairlight%205.1%20Routing%20-%20Interactive.html">Open the interactive map ↗</a>
+  </nav>
+</div>
+
+<div id="wrap">
+<aside id="sidenav">
+  <b>Build guide</b>
+  <a href="#start">1 · Start here</a>
+  <a href="#version">2 · Resolve 21 notes</a>
+  <a href="#bom">3 · Bill of materials</a>
+  <a href="#checklist">4 · Build checklist</a>
+  <a href="#elements">5 · Elements in depth</a>
+  <a href="#routes">6 · Routes explained</a>
+  <a href="#delivery">7 · Delivery &amp; export</a>
+  <a href="#glossary">8 · Glossary</a>
+</aside>
+
+<main>
+<span class="tag">Verified against DaVinci Resolve Studio 21.0.2 · FlexBus · July 2026</span>
+<h1>Build the <b>Fairlight 5.1 template</b>, step by step</h1>
+<p class="lead">Everything you need to recreate a professional 5.1 film/TV mixing template in DaVinci Resolve — written for people who are new to audio mixing. Use this page side-by-side with the <a href="Fairlight%205.1%20Routing%20-%20Interactive.html">interactive routing map</a>: every element below links straight to its node on the map.</p>
+
+<h2 id="start">1 · New to mixing? Start here</h2>
+<p>This whole template is a <b>river system</b>. Your audio clips sit on <b>tracks</b> (the lanes of the timeline). Each track flows into a <b>stem</b> — a submix that gathers one category together: all the talking in one place (DX), all the sound effects in another (FX), all the music in a third (MX). The stems then flow into the <b>Print Master</b> — the finished mix you actually listen to and export.</p>
+<pre>11 SOURCE TRACKS → STEMS (submixes) → PRINT MASTERS (final mixes) → monitoring / delivery
+                     ↑                     ↓
+               reverbs (aux)          Webmix (compressed stereo)</pre>
+<p>Why bother with the middle layer?</p>
+<ul>
+<li><b>Control:</b> one fader turns all dialogue up or down at once.</li>
+<li><b>Deliverables:</b> broadcasters want the mix <i>and</i> the separated stems as files, so the programme can be re-edited or dubbed later.</li>
+<li><b>The M&amp;E:</b> a version of the mix with no dialogue, needed so foreign broadcasters can dub in their own language. It builds itself automatically from the FX and MX stems.</li>
+</ul>
+<p>Riding alongside the river: <b>VCAs</b> (remote-control volume knobs that move several faders at once — no audio flows through them), <b>reverb buses</b> (shared echo machines many tracks can borrow), and <b>LFE buses</b> (collectors for deep bass that feed the subwoofer).</p>
+
+<h2 id="version">2 · Resolve 21 version notes (read once)</h2>
+<div class="callout"><b>Bussing changed in v17 — "Main / Sub / Aux" are roles, not bus types.</b> Modern Resolve uses <b>FlexBus</b>: every bus is created the same way (<code>Fairlight ▸ Bus Format ▸ Add Bus</code> — name, format, colour) and its role comes from routing: stems receive track outputs, reverbs receive Bus Sends, masters are the last bus in the chain.</div>
+<ul>
+<li><b>FlexBus limits:</b> a track can output to up to 10 buses and send to 10 more; buses feed other buses up to 6 layers deep.</li>
+<li><b>Legacy fixed bussing</b> still exists (Project Settings ▸ Fairlight ▸ "Use fixed bus mapping", new empty projects only, one-way conversion back) — don't use it for new work.</li>
+<li><b>VCAs:</b> up to 16 groups via <code>Fairlight ▸ VCA Assign</code>; masters appear right of the buses in the Mixer.</li>
+<li><b>Free vs Studio:</b> buses, VCAs, 5.1 and loudness metering all work in the free version. Studio adds immersive formats (Atmos), Dolby Digital encoding and the AI voice tools.</li>
+<li><b>New in v20/21:</b> AI Audio Assistant (temp mixes only — it doesn't replace this routing), Dialogue Matcher, Voice Isolation (v20); audio track folders, 6-band Clip EQ, Chain FX presets, EQ/Level Match (v21). 21.0.1/21.0.2 are maintenance releases.</li>
+</ul>
+
+<h2 id="bom">3 · Bill of materials</h2>
+<p>Totals: <b>11 tracks · 21 buses · 4 VCAs</b>. The <b>Format</b> column of the Bus Format window is where mono / stereo / 5.1 gets decided — set it exactly as below.</p>
+<h3>Source tracks (11)</h3>
+<table>
+<tr><th>#</th><th>Track</th><th>Width</th><th>Colour</th><th>Outputs to</th><th>VCA</th></tr>
+<tr><td>1</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=vo">Narration / VO</a></td><td>Mono</td><td>Blue</td><td>DX Stem + Stereo DX Stem</td><td>Dialogue</td></tr>
+<tr><td>2</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=dx">DX (Dialogue)</a></td><td>Mono</td><td>Blue</td><td>DX Stem + Stereo DX Stem</td><td>Dialogue</td></tr>
+<tr><td>3</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=futz">Futz</a></td><td>Mono</td><td>Blue</td><td>DX Stem + Stereo DX Stem</td><td>Dialogue</td></tr>
+<tr><td>4</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=pfx">PFX</a></td><td>Mono</td><td>Blue</td><td>DX Stem + Stereo DX Stem</td><td>Dialogue</td></tr>
+<tr><td>5</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=fxa">FX A</a></td><td>Mono</td><td>Orange</td><td>FX Stem + Stereo FX Stem</td><td>FX</td></tr>
+<tr><td>6</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=fxb">FX B</a></td><td>Mono</td><td>Orange</td><td>FX Stem + Stereo FX Stem</td><td>FX</td></tr>
+<tr><td>7</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=fxc">FX C</a></td><td>Stereo</td><td>Orange</td><td>FX Stem + Stereo FX Stem</td><td>FX</td></tr>
+<tr><td>8</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=amba">Ambience A</a></td><td>Mono</td><td>Green</td><td>FX Stem + Stereo FX Stem</td><td>Ambience</td></tr>
+<tr><td>9</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=ambb">Ambience B</a></td><td>Stereo</td><td>Green</td><td>FX Stem + Stereo FX Stem</td><td>Ambience</td></tr>
+<tr><td>10</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=muxst">Music (Stereo)</a></td><td>Stereo</td><td>Purple</td><td>MX Stem + Stereo MX Stem</td><td>Music</td></tr>
+<tr><td>11</td><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=mux51">Music (5.1)</a></td><td>5.1</td><td>Purple</td><td>MX Stem + Stereo MX Stem</td><td>Music</td></tr>
+</table>
+<h3>Buses (21) — with exact formats</h3>
+<table>
+<tr><th>Bus</th><th>Format</th><th>Role</th><th>Feeds</th></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=pm_51">5.1 Print Master</a></td><td><b>5.1</b></td><td>Main mix</td><td>monitor / delivery</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=pm_st">Stereo Print Master</a></td><td><b>Stereo</b></td><td>Main mix</td><td>Webmix, delivery</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=webmix">Webmix Stereo</a></td><td><b>Stereo</b></td><td>Web preview</td><td>export only</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=st_dx">DX Stem</a></td><td><b>5.1</b></td><td>Dialogue stem</td><td>5.1 Print Master</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=st_fx">FX Stem</a></td><td><b>5.1</b></td><td>Effects stem</td><td>5.1 PM <b>and</b> M&amp;E</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=st_mx">MX Stem</a></td><td><b>5.1</b></td><td>Music stem</td><td>5.1 PM <b>and</b> M&amp;E</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=st_me">M&amp;E Stem</a></td><td><b>5.1</b></td><td>Mix minus dialogue</td><td><b>nothing — deliverable only</b></td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=sst_dx">Stereo DX / FX / MX / M&amp;E Stem</a></td><td><b>Stereo</b> ×4</td><td>Stereo mirrors</td><td>Stereo PM (+ Stereo M&amp;E)</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=lfe_fx">FX LFE Bus</a> · <a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=lfe_mx">Music LFE Bus</a></td><td><b>Mono</b> ×2</td><td>Sub-bass (.1) feed</td><td>FX / MX Stem LFE channel</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=rv_dx_m">DX Verb ×3</a> · <a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=rv_fx_m">FX Verb ×3</a></td><td><b>Mono / Stereo / 5.0</b></td><td>Reverb aux</td><td>DX / FX Stem</td></tr>
+<tr><td><a href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=rv_mx_s">MX Verb ×2</a></td><td><b>Stereo / 5.0</b></td><td>Reverb aux</td><td>MX Stem</td></tr>
+</table>
+<div class="callout teal">Reverbs are <b>5.0, not 5.1</b> — echo doesn't belong in the subwoofer. The LFE buses are <b>Mono</b>; they become the ".1" by being panned 100% into the stem's LFE channel.</div>
+
+<h2 id="checklist">4 · Build checklist <span style="font-weight:400;font-size:13px;color:var(--dim)">(progress saves in your browser)</span></h2>
+<div id="progresswrap"><div id="progressbar"><div id="progressfill"></div></div><div id="progresstxt">0 of 12 steps done</div></div>
+<div id="checks">
+<label class="check"><input type="checkbox" data-k="1"><span class="ct"><b>1 · Project setup</b><span>New project ▸ Project Settings ▸ Fairlight ▸ 48 kHz sample rate. Leave "Use fixed bus mapping" OFF (FlexBus). Go to the Fairlight page.</span></span></label>
+<label class="check"><input type="checkbox" data-k="2"><span class="ct"><b>2 · Create all 21 buses</b><span>Fairlight ▸ Bus Format ▸ Add Bus ×21, setting Name + Format + Colour per the table in §3. Exact names matter — they appear in every routing dropdown.</span></span></label>
+<label class="check"><input type="checkbox" data-k="3"><span class="ct"><b>3 · Bus-to-bus routing</b><span>Fairlight ▸ Bus Assign: stems → print masters · FX/MX stems → M&amp;E too · verbs → their stems · LFE buses → their stems · Stereo PM → Webmix · M&amp;E outputs stay unassigned.</span></span></label>
+<label class="check"><input type="checkbox" data-k="4"><span class="ct"><b>4 · Pan the LFE buses into the .1</b><span>Open each LFE bus's output surround panner ▸ steer 100% to the LFE channel, zero to the mains. Insert a low-pass filter ~120 Hz on each.</span></span></label>
+<label class="check"><input type="checkbox" data-k="5"><span class="ct"><b>5 · Create the 11 tracks</b><span>Right-click track header ▸ Add Track with the correct width (see §3) ▸ rename ▸ colour-code. v21 tip: group them into Dial/FX/Amb/Mus track folders.</span></span></label>
+<label class="check"><input type="checkbox" data-k="6"><span class="ct"><b>6 · Assign track outputs</b><span>Mixer ▸ Bus Outputs ▸ + ▸ the 5.1 stem, + again ▸ the stereo stem. Bulk: select tracks, Alt/Option-click +.</span></span></label>
+<label class="check"><input type="checkbox" data-k="7"><span class="ct"><b>7 · Pan the tracks</b><span>Dialogue hard Centre · FX across L/R/Ls/Rs (Centre clear) · ambience wide into surrounds · music L/R fronts · Music 5.1 passes through.</span></span></label>
+<label class="check"><input type="checkbox" data-k="8"><span class="ct"><b>8 · LFE sends</b><span>FX A/B/C ▸ Bus Sends ▸ + ▸ FX LFE Bus. Music tracks ▸ + ▸ Music LFE Bus. Leave at −∞ in the template.</span></span></label>
+<label class="check"><input type="checkbox" data-k="9"><span class="ct"><b>9 · Reverbs</b><span>FairlightFX Reverb on each of the 8 verb buses (100% wet, preset to suit width). Pre-route track sends per the map, levels at −∞.</span></span></label>
+<label class="check"><input type="checkbox" data-k="10"><span class="ct"><b>10 · VCAs</b><span>Fairlight ▸ VCA Assign ▸ create Dialogue / FX / Ambience / Music groups ▸ tick member tracks.</span></span></label>
+<label class="check"><input type="checkbox" data-k="11"><span class="ct"><b>11 · Monitoring + loudness</b><span>Monitor the 5.1 Print Master (Control Room) · pick your loudness standard in the meter options · set the stereo downmix (Lt/Rt vs Lo/Ro) per spec · Webmix: Compressor + Limiter (Chain FX preset), ≈ −14 LUFS / −1 dBTP.</span></span></label>
+<label class="check"><input type="checkbox" data-k="12"><span class="ct"><b>12 · Save as template</b><span>Gains at unity, sends silent, mutes off ▸ File ▸ Export Project (.drp). This is your reusable master template.</span></span></label>
+</div>
+<p style="font-size:13px"><a href="#" id="resetchecks">Reset checklist</a></p>
+
+<h2 id="elements">5 · Elements in depth</h2>
+<p>Each group below matches a column on the <a href="Fairlight%205.1%20Routing%20-%20Interactive.html">map</a> — the "view on map" links open the map with that element selected and its full signal path lit up.</p>
+
+<details class="acc" open><summary><span class="dot" style="background:#3b7dd8"></span>Source tracks <a class="maplink" href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=dx">view on map ↗</a></summary><div class="inner">
+<p><b>In plain English:</b> a track is a lane in the timeline where you drop audio clips. Everything on the lane flows wherever its output points — into its family's stem.</p>
+<ul>
+<li><b>Narration/VO</b> carries an information piece: own fader, de-esser + light compression, <b>no reverb</b>. Streaming loudness is dialog-gated, so this track largely decides whether you pass the −27 LKFS check.</li>
+<li><b>Dialogue lives hard Centre</b> — anchored to the screen for every seat, and it folds down predictably.</li>
+<li><b>Futz</b> = deliberately degraded voice (phone/radio/TV). Do the degradation with clip FX — v21's 6-band Clip EQ is ideal.</li>
+<li><b>PFX</b> stays with dialogue (shared recording acoustics); the dub replaces it with library FX.</li>
+<li><b>Ambience folds into the FX stem</b> — standard for backgrounds and M&amp;E. Need a separate BG deliverable? Add a BG Stem later.</li>
+<li><b>Music (5.1)</b> passes channel-for-channel; its LFE send is for reinforcing stereo-sourced cues.</li>
+</ul></div></details>
+
+<details class="acc"><summary><span class="dot" style="background:#e05a4d"></span>VCAs — group volume control <a class="maplink" href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=vca_dx">view on map ↗</a></summary><div class="inner">
+<p><b>In plain English:</b> a remote-control volume knob. Pull it down and every member track turns down together, keeping their relative balance. No sound travels through it.</p>
+<p><b>Build:</b> <code>Fairlight ▸ VCA Assign</code> ▸ create and name each group ▸ tick member tracks. Masters appear right of the buses in the Mixer; members keep their own routing.</p>
+<p><b>Why:</b> one-fader control of a whole section <i>without</i> collapsing it to a bus — per-track automation, panning and stem routing stay untouched. This is your top-level balance layer.</p></div></details>
+
+<details class="acc"><summary><span class="dot" style="background:#1ab4b4"></span>Reverb buses (aux role) <a class="maplink" href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=rv_dx_s">view on map ↗</a></summary><div class="inner">
+<p><b>In plain English:</b> a shared echo machine. Tracks tip a little sound in (a "send"); it comes out wet and is added back into the submix (the "return"). One reverb serves many tracks at different amounts.</p>
+<p><b>Build each:</b> <code>Bus Format ▸ Add Bus</code> (Mono/Stereo/5.0) ▸ Mixer ▸ Effects ▸ FairlightFX ▸ Reverb, 100% wet ▸ Bus Outputs ▸ + ▸ its stem. Feed it <b>only via Bus Sends</b>.</p>
+<p><b>Why:</b> returning the verb into the matching stem keeps wet signal inside the correct deliverable — dialogue tails can never pollute the M&amp;E. Presets: room/plate for mono/stereo, hall/scoring for 5.0.</p></div></details>
+
+<details class="acc"><summary><span class="dot" style="background:#c77dff"></span>LFE buses — the ".1" <a class="maplink" href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=lfe_fx">view on map ↗</a></summary><div class="inner">
+<p><b>In plain English:</b> a collector for deep bass. Tracks tip low rumble in, a ~120 Hz low-pass keeps only sub-bass, and the output is panned 100% into the stem's LFE channel — so <i>you</i> decide what shakes the room, not the playback system's bass management.</p>
+<p>Separate FX and Music LFE buses mean the M&amp;E and mix stems each carry their own correct low end.</p></div></details>
+
+<details class="acc"><summary><span class="dot" style="background:#c9812f"></span>Stems (sub role) &amp; the M&amp;E <a class="maplink" href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=st_fx">view on map ↗</a></summary><div class="inner">
+<p><b>In plain English:</b> a stem is a submix — all of one category in one place with one master fader, also exported as its own file so the mix can be taken apart and re-versioned later.</p>
+<p><b>The M&amp;E trick:</b> M&amp;E is fed <b>bus-to-bus from the FX and MX stems</b>, never from tracks. That guarantees it always equals FX + Music + Ambience with dialogue removed — change any level and the M&amp;E follows automatically. Leave its output unassigned; it's a deliverable, not part of the monitored mix. <b>M&amp;E is usually a mandatory deliverable.</b></p></div></details>
+
+<details class="acc"><summary><span class="dot" style="background:#d8b74a"></span>Print Masters &amp; Webmix <a class="maplink" href="Fairlight%205.1%20Routing%20-%20Interactive.html?select=pm_51">view on map ↗</a></summary><div class="inner">
+<p><b>In plain English:</b> the finished mix — every stem summed. What you listen to, what the loudness meters judge, what gets exported.</p>
+<ul>
+<li><b>5.1 Print Master:</b> monitor it via the Control Room; loudness meters colour-code against your chosen standard (blue in-spec / yellow tolerance / red over); switch to dialog-gated for streaming checks. Deliver as 6-ch WAV (L R C LFE Ls Rs) or Dolby Digital (Studio).</li>
+<li><b>Stereo Print Master:</b> a discrete stereo mix (not just a fold-down); set Lt/Rt or Lo/Ro per spec; meter it separately.</li>
+<li><b>Webmix:</b> Compressor (~3:1) + Limiter (−1 dBTP ceiling) — save as one Chain FX preset — landing ≈ −14 LUFS for web platforms.</li>
+</ul></div></details>
+
+<h2 id="routes">6 · The routes, explained</h2>
+<p>Every line on the map is one of eight connection types. Click any line on the map for the same info in context.</p>
+<details class="acc"><summary>Track output → bus</summary><div class="inner"><p>The track's post-fader, post-pan signal is mixed into the bus — the main path from a lane into its stem. <b>Create:</b> Mixer ▸ Bus Outputs ▸ + (Alt/Option-click for many tracks at once), or Fairlight ▸ Bus Assign.</p></div></details>
+<details class="acc"><summary>Bus Send → reverb (aux send)</summary><div class="inner"><p>A copy of the sound is siphoned to the echo machine; the original keeps flowing unaffected. <b>Create:</b> Mixer ▸ Bus Sends ▸ + ▸ the verb bus; right-click the send for pre/post-fader (post is typical). Template default: −∞.</p></div></details>
+<details class="acc"><summary>Reverb return → stem</summary><div class="inner"><p>The echo joins the group mix, so the echo of dialogue always lives with the dialogue. <b>Create:</b> the verb bus's own Bus Outputs ▸ + ▸ the stem.</p></div></details>
+<details class="acc"><summary>LFE send → LFE bus</summary><div class="inner"><p>Some of the track's deep bass is siphoned to the bass collector. <b>Create:</b> Bus Sends ▸ + ▸ the LFE bus. Filtering happens once, on the bus.</p></div></details>
+<details class="acc"><summary>LFE bus → stem's LFE channel</summary><div class="inner"><p>The collected, filtered bass is poured into the subwoofer channel. <b>Create:</b> Bus Outputs ▸ + ▸ the stem, then pan the bus's output 100% to LFE.</p></div></details>
+<details class="acc"><summary>VCA assignment (control only)</summary><div class="inner"><p>No sound — a volume remote-control link (dashed red on the map). <b>Create:</b> Fairlight ▸ VCA Assign, or the Mixer Group dropdown.</p></div></details>
+<details class="acc"><summary>Stem → M&amp;E</summary><div class="inner"><p>The effects/music group is also copied into the "no dialogue" version, automatically. <b>Create:</b> Bus Assign ▸ the stem's Out ▸ also tick M&amp;E.</p></div></details>
+<details class="acc"><summary>Bus → master chain</summary><div class="inner"><p>The group mix is poured into the final mix (stems → print masters; Stereo PM → Webmix). <b>Create:</b> Bus Assign or Bus Outputs ▸ +.</p></div></details>
+
+<h2 id="delivery">7 · Delivery targets &amp; export</h2>
+<table>
+<tr><th>Deliverable</th><th>Integrated loudness</th><th>True peak</th><th>Measurement</th></tr>
+<tr><td>US broadcast (ATSC A/85 · CALM)</td><td>−24 LKFS</td><td>−2 dBTP</td><td>program</td></tr>
+<tr><td>EU broadcast (EBU R128)</td><td>−23 LUFS</td><td>−1 dBTP</td><td>program</td></tr>
+<tr><td>Premium streaming (Netflix-style)</td><td>−27 LKFS</td><td>−2 dBTP</td><td><b>dialog-gated</b></td></tr>
+<tr><td>Web / social (Webmix)</td><td>−14 to −16 LUFS</td><td>−1 dBTP</td><td>program</td></tr>
+</table>
+<div class="callout"><b>No single master satisfies all four</b> — broadcast measures the whole programme while streaming measures only where speech is present. Mix once, then produce normalized versions. Always verify against each recipient's current spec sheet.</div>
+<p><b>Export from the Deliver page</b> — each bus renders as its own file, 48 kHz / 24-bit, SMPTE order <code>L R C LFE Ls Rs</code>: the 5.1 Print Master (6-ch WAV or Dolby Digital), all stems including the <b>mandatory M&amp;E</b>, the Stereo Print Master (Lt/Rt or Lo/Ro per spec), stereo stems, and the Webmix as AAC/MP3.</p>
+
+<h2 id="glossary">8 · Glossary</h2>
+<input id="glsearch" type="search" placeholder="Type to filter… e.g. LUFS, stem, dBTP">
+<dl class="gl" id="gllist">
+<div class="cat">The sections</div>
+<dt>DX</dt><dd>Dialogue — all spoken voice.</dd>
+<dt>VO</dt><dd>Voice-Over — narration recorded in a booth, separate from filmed dialogue.</dd>
+<dt>FX / SFX</dt><dd>(Sound) Effects — doors, cars, whooshes, hits.</dd>
+<dt>PFX</dt><dd>Production Effects — non-speech sounds the dialogue mics caught on location. Kept with dialogue; excluded from the M&amp;E.</dd>
+<dt>Futz</dt><dd>Voice deliberately degraded to sound like a phone, radio or TV speaker.</dd>
+<dt>Ambience / BG</dt><dd>Backgrounds — continuous atmosphere such as room tone, wind, traffic.</dd>
+<dt>MX</dt><dd>Music.</dd>
+<dt>M&amp;E</dt><dd>Music &amp; Effects — the entire mix minus dialogue, for foreign-language dubbing. Usually mandatory.</dd>
+<div class="cat">Signal path</div>
+<dt>Track</dt><dd>A lane in the timeline that holds audio clips, with its own fader, pan, EQ and effects.</dd>
+<dt>Bus</dt><dd>A meeting point that sums several signals into one — a "group channel". In FlexBus all buses are created identically; the role comes from routing.</dd>
+<dt>Stem</dt><dd>A bus used as a category submix, also exported as its own file.</dd>
+<dt>Print Master</dt><dd>The final mix bus — what you monitor and deliver.</dd>
+<dt>Send (Bus Send)</dt><dd>A tap that siphons an adjustable copy of a signal to another bus; the original is unaffected.</dd>
+<dt>Return</dt><dd>The processed (wet) signal coming back from a reverb bus into a stem.</dd>
+<dt>Aux</dt><dd>The traditional name for a bus you reach via sends.</dd>
+<dt>Insert</dt><dd>A processor placed directly in a channel's path, affecting everything through it.</dd>
+<dt>Fader</dt><dd>The volume slider of a track or bus.</dd>
+<dt>−∞ (minus infinity)</dt><dd>A fader or send pulled all the way down: silence. Template sends are pre-wired at −∞.</dd>
+<dt>VCA</dt><dd>Voltage Controlled Amplifier (historic desk term) — a fader that remote-controls other faders. No audio passes through it. Up to 16 groups via Fairlight ▸ VCA Assign.</dd>
+<dt>Pan / Panner</dt><dd>Positions a sound between speakers; the surround panner places it anywhere in the 5.1 field.</dd>
+<dt>Pre / post-fader</dt><dd>Whether a send taps the signal before or after the fader. Post (default) means the echo follows the fader down.</dd>
+<dt>Automation</dt><dd>Recorded fader/knob moves that replay with the timeline.</dd>
+<dt>Patching</dt><dd>Connecting signals to physical inputs/outputs (mics in, speakers out).</dd>
+<div class="cat">Channels &amp; formats</div>
+<dt>Mono / Stereo</dt><dd>One channel / two channels (Left + Right).</dd>
+<dt>5.1</dt><dd>Six channels: Left, Right, Centre, LFE (subwoofer), Left surround, Right surround.</dd>
+<dt>5.0</dt><dd>5.1 without the LFE channel — used for surround reverbs.</dd>
+<dt>LFE</dt><dd>Low Frequency Effects — the ".1": a dedicated deep-bass channel for the subwoofer.</dd>
+<dt>Ls / Rs</dt><dd>Left surround / Right surround — the rear speakers.</dd>
+<dt>SMPTE order</dt><dd>Standard channel order in delivered files: L R C LFE Ls Rs. (Film order: L C R Ls Rs LFE.)</dd>
+<dt>Downmix / fold-down</dt><dd>Automatically converting a surround mix to stereo.</dd>
+<dt>Lt/Rt vs Lo/Ro</dt><dd>Lt/Rt encodes surround info so a decoder can rebuild it; Lo/Ro is a plain stereo sum. The delivery spec says which.</dd>
+<dt>Bass management</dt><dd>A playback system re-routing low frequencies to the subwoofer automatically. The LFE buses exist so you control the sub deliberately instead.</dd>
+<dt>48 kHz / 24-bit</dt><dd>Professional sample rate and bit depth for film/TV audio.</dd>
+<div class="cat">Loudness &amp; delivery</div>
+<dt>LUFS / LKFS</dt><dd>Loudness Units relative to Full Scale — the standard measure of perceived loudness (LKFS is the US name). More negative = quieter.</dd>
+<dt>Integrated</dt><dd>The single loudness number for the whole programme — what specs are judged on.</dd>
+<dt>Short-term / Momentary</dt><dd>Loudness over the last 3 s / 400 ms — for watching while you mix.</dd>
+<dt>LRA (Loudness Range)</dt><dd>How much the loudness varies. Broadcast tolerates less range than cinema.</dd>
+<dt>dBTP / true peak</dt><dd>The real maximum level after digital-to-analogue conversion; specs cap it to prevent distortion.</dd>
+<dt>Dialog-gated</dt><dd>Loudness measured only while speech is present — how Netflix-style services measure.</dd>
+<dt>EBU R128</dt><dd>European broadcast loudness standard: −23 LUFS integrated, −1 dBTP.</dd>
+<dt>ATSC A/85 · CALM Act</dt><dd>US broadcast loudness standard (−24 LKFS, −2 dBTP) and the law that enforces it.</dd>
+<dt>Deliverable</dt><dd>Any file the client contractually requires: masters, stems, M&amp;E…</dd>
+<dt>WAV / AAC / MP3</dt><dd>WAV = uncompressed professional format; AAC/MP3 = compressed web formats (Webmix only).</dd>
+<dt>.drp</dt><dd>A DaVinci Resolve Project export — how you save this template for reuse.</dd>
+<div class="cat">Processing</div>
+<dt>EQ (Equaliser)</dt><dd>Boosts or cuts chosen frequency ranges — tone control.</dd>
+<dt>Compressor</dt><dd>Automatically turns down loud moments, evening out level. Ratio (3:1) sets how firmly.</dd>
+<dt>Limiter</dt><dd>A brick-wall compressor that stops the signal exceeding a ceiling.</dd>
+<dt>De-esser</dt><dd>Tames harsh "S" sounds in a voice.</dd>
+<dt>Reverb</dt><dd>Simulates a space's echo: room, plate, hall.</dd>
+<dt>Low-pass filter</dt><dd>Lets frequencies below a cutoff through; ~120 Hz on the LFE buses keeps only sub-bass.</dd>
+<dt>Chain FX</dt><dd>Resolve 21: several plugins saved as one reusable preset (up to 6).</dd>
+<dt>FairlightFX</dt><dd>Resolve's built-in suite of audio plugins.</dd>
+</dl>
+</main>
+</div>
+
+<footer>
+Fairlight 5.1 Toolkit · MIT License · Verified against DaVinci Resolve Studio 21.0.2 (July 2026)<br>
+Unofficial community resource. DaVinci Resolve and Fairlight are trademarks of Blackmagic Design Pty. Ltd. — not affiliated with or endorsed by Blackmagic Design.
+</footer>
+
+<script>
+// checklist with saved progress
+const KEY="f51-checklist";
+const saved=JSON.parse(localStorage.getItem(KEY)||"{}");
+const boxes=[...document.querySelectorAll('.check input')];
+function paint(){let n=0;boxes.forEach(b=>{const on=!!saved[b.dataset.k];b.checked=on;b.closest('.check').classList.toggle('done',on);if(on)n++;});
+ document.getElementById('progressfill').style.width=(n/boxes.length*100)+'%';
+ document.getElementById('progresstxt').textContent=n+' of '+boxes.length+' steps done'+(n===boxes.length?' — template complete! Export that .drp 🎉':'');}
+boxes.forEach(b=>b.addEventListener('change',()=>{saved[b.dataset.k]=b.checked;localStorage.setItem(KEY,JSON.stringify(saved));paint();}));
+document.getElementById('resetchecks').addEventListener('click',e=>{e.preventDefault();boxes.forEach(b=>delete saved[b.dataset.k]);localStorage.setItem(KEY,"{}");paint();});
+paint();
+// glossary filter
+const gs=document.getElementById('glsearch'),gl=document.getElementById('gllist');
+gs.addEventListener('input',()=>{
+  const q=gs.value.trim().toLowerCase();
+  const dts=[...gl.querySelectorAll('dt')];
+  dts.forEach(dt=>{const dd=dt.nextElementSibling;
+    const hit=!q||dt.textContent.toLowerCase().includes(q)||dd.textContent.toLowerCase().includes(q);
+    dt.classList.toggle('hidden',!hit);dd.classList.toggle('hidden',!hit);});
+  gl.querySelectorAll('.cat').forEach(c=>{let el=c.nextElementSibling,any=false;
+    while(el&&!el.classList.contains('cat')){if(el.tagName==='DT'&&!el.classList.contains('hidden'))any=true;el=el.nextElementSibling;}
+    c.classList.toggle('hidden',!any);});
+});
+// sidenav highlight
+const secs=[...document.querySelectorAll('h2[id]')];
+const navs=[...document.querySelectorAll('#sidenav a')];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+  navs.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));}});},{rootMargin:"-20% 0px -70% 0px"});
+secs.forEach(s=>io.observe(s));
+</script>
+</body></html>

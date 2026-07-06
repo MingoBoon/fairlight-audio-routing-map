@@ -26,11 +26,20 @@ A documentary-style 5.1 mix structure for **broadcast, web and streaming** deliv
 
 Plus: 4 VCA control groups, 2 dedicated LFE buses, and an M&E (Music & Effects) stem built bus-to-bus so the foreign-dub deliverable can never drift out of sync with the mix. Delivery targets covered: ATSC A/85 (−24 LKFS), EBU R128 (−23 LUFS), Netflix-style dialog-gated (−27 LKFS), and web (~−14 LUFS).
 
-## Files
+## The site
+
+Three interconnected pages, all self-contained static HTML (no build step, no dependencies):
+
+| Page | What it is |
+|------|-----------|
+| `index.html` | **Landing page** — hero, live map preview, feature overview, the full kit |
+| `Fairlight 5.1 Routing - Interactive.html` | **The interactive map** — supports deep links (`?select=st_dx` opens with that element selected) |
+| `guide.html` | **The build guide** — step-by-step instructions, 21-bus format table, interactive checklist with saved progress, filterable glossary; every element deep-links to the map |
+
+## Companion documents
 
 | File | What it is |
 |------|-----------|
-| `Fairlight 5.1 Routing - Interactive.html` | **The interactive map** — open in a browser |
 | `Fairlight 5.1 - Master Guide.md` | The full written guide (same content in document form) |
 | `Fairlight 5.1 - Glossary.md` | Every acronym & term, explained for beginners |
 | `Fairlight 5.1 Template - Build Spec.md` | The original build specification (Resolve 21 / FlexBus corrected) |
@@ -39,13 +48,11 @@ Plus: 4 VCA control groups, 2 dedicated LFE buses, and an M&E (Music & Effects) 
 
 ## Hosting it with GitHub Pages
 
-The map is a single static HTML file, so GitHub Pages serves it directly:
+Everything is static, so GitHub Pages serves it directly:
 
 1. Push this repo to GitHub.
 2. Repo **Settings → Pages** → Source: *Deploy from a branch* → branch `main`, folder `/ (root)`.
-3. Your map is live at `https://<username>.github.io/<repo>/Fairlight%205.1%20Routing%20-%20Interactive.html`.
-
-(Optional: rename the HTML to `index.html` for a cleaner URL.)
+3. The landing page is live at `https://<username>.github.io/<repo>/` — the map and guide are linked from there.
 
 ## Requirements
 
