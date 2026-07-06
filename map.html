@@ -75,6 +75,12 @@ abbr{cursor:help;text-decoration:underline dotted #5d6b7e;text-underline-offset:
   padding:6px 14px;border-radius:16px;font-size:12.5px;font-weight:600;text-decoration:none}
 #pagenav a:hover{background:var(--panel2)}
 #pagenav a.gold{background:#d8b74a;border-color:#d8b74a;color:#181405}
+.boxhead{cursor:pointer;user-select:none}
+.boxhead .tog{float:right;margin-left:10px;color:var(--dim);font-weight:700}
+.boxhead:hover .tog{color:var(--txt)}
+.boxmin .boxbody{display:none}
+body.zen #side,body.zen #legend,body.zen #dtbox{display:none}
+#zenbtn.on{background:#d8b74a;border-color:#d8b74a;color:#181405}
 .node rect{transition:opacity .15s}
 .node text{pointer-events:none;font-size:12.5px;font-weight:600;fill:#fff}
 .node .fmt{font-size:9.5px;font-weight:500;fill:rgba(255,255,255,.8)}
@@ -97,14 +103,16 @@ abbr{cursor:help;text-decoration:underline dotted #5d6b7e;text-underline-offset:
 <body><div id="app">
 <div id="stage">
   <svg id="svg"><g id="edges"></g><g id="nodes"></g></svg>
-  <div id="ctrl"><button id="zin">+</button><button id="zout">&minus;</button><button id="zreset" title="Reset">&#8634;</button></div>
+  <div id="ctrl"><button id="zin">+</button><button id="zout">&minus;</button><button id="zreset" title="Reset">&#8634;</button><button id="zenbtn" title="Full-screen graph — hide/show panels">&#x26F6;</button></div>
   <div id="pagenav"><a href="index.html">⌂ Home</a><a class="gold" href="guide.html">📖 Build guide</a><a href="glossary.html">🔤 Glossary</a></div>
-  <div id="dtbox"><b>Delivery targets — integrated / peak / gating</b>
+  <div id="dtbox"><b class="boxhead">Delivery targets — integrated / peak / gating<span class="tog">–</span></b>
+    <div class="boxbody">
     <div class="dtr"><span>US broadcast · A/85</span><span>−24 LKFS · −2 dBTP · program</span></div>
     <div class="dtr"><span>EU broadcast · R128</span><span>−23 LUFS · −1 dBTP · program</span></div>
     <div class="dtr"><span>Streaming · Netflix</span><span>−27 LKFS · −2 dBTP · dialog-gated</span></div>
     <div class="dtr"><span>Web · Webmix bus</span><span>−14→−16 LUFS · −1 dBTP</span></div>
     <div class="dtnote">No single master fits all — details in the sidebar.</div>
+    </div>
   </div>
   <div id="legend"></div>
 </div>
@@ -640,10 +648,16 @@ const LG=[["#3b7dd8","<b2>DX</b2> — Dialogue (spoken voice, incl. VO narration
 const LK=[["#5b6b7d","solid","audio path (track/bus output)"],["#e05a4d","dashed","VCA control — no audio"],
  ["#1ab4b4","solid","reverb send / return"],["#c77dff","solid","LFE (sub-bass)"],
  ["#7a94a3","solid","to M&E"],["#d8b74a","solid","to Print Master"]];
-document.getElementById("legend").innerHTML="<b>Boxes — click for build steps</b>"+
+document.getElementById("legend").innerHTML='<b class="boxhead">Legend<span class="tog">–</span></b><div class="boxbody">'+
+ "<b>Boxes — click for build steps</b>"+
  LG.map(([c,l])=>`<div class="lg"><span class="dot" style="background:${c}"></span><span>${l.replace(/<b2>/g,'<span style="font-weight:700;color:#fff">').replace(/<\/b2>/g,'</span>')}</span></div>`).join("")+
  "<b style='margin-top:8px'>Lines — click for how-to</b>"+
- LK.map(([c,st,l])=>`<div class="lg"><span style="display:inline-block;width:20px;height:0;border-top:2.5px ${st} ${c};flex:none"></span><span>${l}</span></div>`).join("");
+ LK.map(([c,st,l])=>`<div class="lg"><span style="display:inline-block;width:20px;height:0;border-top:2.5px ${st} ${c};flex:none"></span><span>${l}</span></div>`).join("")+'</div>';
+// collapsible overlay boxes (click the header to minimise)
+document.querySelectorAll(".boxhead").forEach(h=>h.addEventListener("click",()=>{
+  const box=h.parentElement;box.classList.toggle("boxmin");
+  h.querySelector(".tog").textContent=box.classList.contains("boxmin")?"+":"–";
+}));
 
 // pan + zoom via viewBox
 let vb={x:0,y:0,w:DATA.w,h:DATA.h};
@@ -669,6 +683,13 @@ function zoom(f){const cx=vb.x+vb.w/2,cy=vb.y+vb.h/2;vb.w*=f;vb.h*=f;vb.x=cx-vb.
 document.getElementById("zin").onclick=()=>zoom(0.8);
 document.getElementById("zout").onclick=()=>zoom(1.25);
 document.getElementById("zreset").onclick=fit;
+// zen mode: hide sidebar + overlays for a full-screen graph (auto on small screens)
+const zenBtn=document.getElementById("zenbtn");
+function setZen(on){document.body.classList.toggle("zen",on);zenBtn.classList.toggle("on",on);
+  localStorage.setItem("f51-zen",on?"1":"0");requestAnimationFrame(fit);}
+zenBtn.addEventListener("click",()=>setZen(!document.body.classList.contains("zen")));
+const zs=localStorage.getItem("f51-zen");
+if(zs==="1"||(zs===null&&window.innerWidth<900))setZen(true);
 // deep link: ?select=<node id> opens the map with that element selected (used by guide.html)
 const dq=new URLSearchParams(location.search).get("select");
 if(dq&&N[dq])select(dq);
